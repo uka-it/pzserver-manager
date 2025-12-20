@@ -22,7 +22,8 @@ backups/
 Zomboid/
 db/
 
-# User-specific
+# User-specific Configuration
+.env
 *.ini
 *.cfg
 

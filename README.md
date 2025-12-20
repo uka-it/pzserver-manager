@@ -52,13 +52,33 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 ### Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/pzserver-manager.git
+# 1. Clone the repository
+git clone https://github.com/uka-it/pzserver-manager.git
 cd pzserver-manager
 
-# Run the automated setup
+# 2. (Optional) Configure your server
+cp .env.example .env
+nano .env  # Edit with your settings
+
+# 3. Run the automated setup
 ./setup-new-server.sh
 ```
+
+### Configuration (Optional)
+
+All scripts support configuration via `.env` file:
+
+```bash
+# Copy example configuration
+cp .env.example .env
+
+# Edit your settings
+nano .env
+```
+
+See [CONFIGURATION.md](CONFIGURATION.md) for detailed configuration options.
+
+**Default values work out of the box!** Configuration is optional.
 
 The setup script will:
 1. Install system dependencies (lib32gcc-s1, curl)

@@ -39,7 +39,12 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 
 ### 🌐 Network Tunneling
 - **Playit.gg Integration** - Optional tunneling for CGNAT/NAT
-- **Auto-Setup** - Guided Playit.gg configuration
+- **Separate Start Options** - Start with or without tunnel
+- **Playit Manager** - Dedicated management menu
+  - Start/Stop tunnel independently
+  - View claim URL for account activation
+  - Configure tunnels
+  - View tunnel logs
 - **Status Monitoring** - Real-time tunnel status
 - **Works Without Playit** - Server runs fine with direct connection
 
@@ -129,25 +134,29 @@ Launch the management console:
 **Menu Options:**
 
 **⚙ SERVER CONTROL**
-- `[1]` Start server (with Playit.gg)
-- `[2]` Stop server (and Playit.gg)
-- `[3]` Restart server
-- `[4]` View server status
+- `[1]` Start server + Playit.gg tunnel
+- `[2]` Start server only (no tunnel)
+- `[3]` Stop server (and Playit.gg)
+- `[4]` Restart server
+- `[5]` View server status
+
+**🌐 PLAYIT.GG TUNNEL**
+- `[6]` Manage Playit.gg (start/stop/claim URL)
 
 **🔧 MAINTENANCE**
-- `[5]` Update server files
-- `[6]` Switch game branch/version
-- `[7]` Clean cache & workshop files
-- `[8]` Setup new server (automated install)
+- `[7]` Update server files
+- `[8]` Switch game branch/version
+- `[9]` Clean cache & workshop files
+- `[10]` Setup new server (automated install)
 
 **🌍 WORLD MANAGEMENT**
-- `[9]` Reset world (fresh start)
-- `[10]` Manage backups (view/restore/delete)
+- `[11]` Reset world (fresh start)
+- `[12]` Manage backups (view/restore/delete)
 
 **📋 OTHER**
-- `[11]` View server logs (live)
-- `[12]` Uninstall / Cleanup
-- `[13]` Exit
+- `[13]` View server logs (live)
+- `[14]` Uninstall / Cleanup
+- `[15]` Exit
 
 ### Individual Scripts
 
@@ -195,7 +204,9 @@ pzserver-manager/
 ├── clean-cache.sh             # Cache/workshop cleaner
 ├── reset-world.sh             # World reset tool
 ├── manage-backups.sh          # Backup manager
+├── manage-playit.sh           # Playit.gg manager
 ├── uninstall.sh               # Uninstall/cleanup tool
+├── start-server-only.sh       # Start without Playit.gg
 └── start-pzserver.sh          # PZ server starter
 ```
 
@@ -219,19 +230,49 @@ After installation, your server will have these defaults:
 
 If you're behind CGNAT/NAT, use Playit.gg for tunneling:
 
-### Setup Tunnels
+### Manage Playit.gg
 
-1. Run: `playit setup`
-2. Create 4 UDP tunnels:
+```bash
+./server-manager.sh
+# Choose [6] Manage Playit.gg
+```
+
+**Options:**
+1. Start Playit.gg tunnel
+2. Stop Playit.gg tunnel
+3. Restart tunnel
+4. View active tunnels
+5. **Get claim URL / Manage account** - Activate and manage your tunnel
+6. Setup new tunnels
+7. View Playit.gg logs
+8. Back to main menu
+
+### Initial Setup
+
+1. Run: `playit setup` or use option [6] → [6] from the manager
+2. **Get claim URL** - Visit the URL to activate your account
+3. Create 4 UDP tunnels:
    - Port 16261 → Main server
    - Port 16262 → Secondary
    - Port 8766 → Steam 1
    - Port 8767 → Steam 2
 
-3. Share your Playit.gg address with players:
+4. Share your Playit.gg address with players:
    ```
    your-tunnel.gl.at.ply.gg:PORT
    ```
+
+### Start Options
+
+**With Tunnel:**
+```bash
+./server-manager.sh → [1] Start server + Playit.gg
+```
+
+**Without Tunnel:**
+```bash
+./server-manager.sh → [2] Start server only
+```
 
 ## 🎨 Features Showcase
 

@@ -2,24 +2,24 @@
 ###############################################################################
 # Project Zomboid Server Startup Script
 # Server: pzserver
-# Branch: unstable-unstable
 ###############################################################################
 
-# Server directory
-INSTDIR="/home/liviouka/pzserver"
-cd "${INSTDIR}"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
+cd "${INSTALL_DIR}"
 
 # Server name (must match the directory in ~/.local/share/Zomboid/Server/)
 SERVER_NAME="pzserver"
 
 echo "=================================================="
 echo "Starting Project Zomboid Server: ${SERVER_NAME}"
-echo "Branch: unstable-unstable"
 echo "=================================================="
 
 # Export environment variables
-export PATH="${INSTDIR}/jre64/bin:$PATH"
-export LD_LIBRARY_PATH="${INSTDIR}/linux64:${INSTDIR}/natives:${INSTDIR}:${INSTDIR}/jre64/lib/amd64:${LD_LIBRARY_PATH}"
+export PATH="${INSTALL_DIR}/jre64/bin:$PATH"
+export LD_LIBRARY_PATH="${INSTALL_DIR}/linux64:${INSTALL_DIR}/natives:${INSTALL_DIR}:${INSTALL_DIR}/jre64/lib/amd64:${LD_LIBRARY_PATH}"
 
 # Set JSIG library
 JSIG="libjsig.so"

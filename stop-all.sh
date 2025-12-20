@@ -3,8 +3,12 @@
 # Stop Project Zomboid Server + Playit.gg
 ###############################################################################
 
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 echo "=================================================="
-echo "Stopping ShadowZombie Server + Playit.gg"
+echo "Stopping ${SERVER_NAME:-Project Zomboid Server} + Playit.gg"
 echo "=================================================="
 
 # Stop Project Zomboid server

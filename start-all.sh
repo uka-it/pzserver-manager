@@ -3,11 +3,14 @@
 # Combined Project Zomboid Server + Playit.gg Startup Script
 ###############################################################################
 
-SCRIPT_DIR="/home/liviouka/pzserver"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 cd "${SCRIPT_DIR}"
 
 echo "=================================================="
-echo "Starting ShadowZombie Server + Playit.gg Tunnel"
+echo "Starting ${SERVER_NAME:-Project Zomboid Server} + Playit.gg Tunnel"
 echo "=================================================="
 
 # Check if Playit is already running
@@ -57,14 +60,16 @@ fi
 
 echo "=================================================="
 echo "Starting Project Zomboid Server..."
-echo "Server Name: ShadowZombie Server"
+echo "Server Name: ${SERVER_NAME:-My PZ Server}"
 echo "Branch: $BRANCH_DISPLAY"
 echo "Memory: 8GB"
 echo "=================================================="
 echo ""
-echo "Players can connect via Playit.gg:"
-echo "  glass-fascinating.gl.at.ply.gg:11128"
-echo ""
+if [ -n "$PLAYIT_TUNNEL" ]; then
+    echo "Players can connect via Playit.gg:"
+    echo "  $PLAYIT_TUNNEL"
+    echo ""
+fi
 echo "=================================================="
 echo "Server is starting in background..."
 echo "=================================================="

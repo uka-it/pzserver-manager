@@ -4,7 +4,11 @@
 # View, restore, and delete world backups
 ###############################################################################
 
-BACKUP_DIR="/home/liviouka/pzserver/backups"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
+BACKUP_DIR="$INSTALL_DIR/backups"
 SERVER_NAME="pzserver"
 
 echo "=================================================="
@@ -142,7 +146,7 @@ case $action in
             fi
             echo ""
             echo "Stopping server..."
-            /home/liviouka/pzserver/stop-all.sh
+            "$SCRIPT_DIR/stop-all.sh"
             sleep 3
         fi
 
@@ -159,8 +163,8 @@ case $action in
         SAFETY_BACKUP="$BACKUP_DIR/pre-restore-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
 
         tar -czf "$SAFETY_BACKUP" \
-            /home/liviouka/Zomboid/Saves/Multiplayer/pzserver/ \
-            /home/liviouka/Zomboid/db/pzserver.db \
+            $ZOMBOID_DIR/Saves/Multiplayer/pzserver/ \
+            $ZOMBOID_DIR/db/pzserver.db \
             2>/dev/null
 
         if [ -f "$SAFETY_BACKUP" ]; then
@@ -170,8 +174,8 @@ case $action in
 
         echo ""
         echo "Deleting current world..."
-        rm -rf /home/liviouka/Zomboid/Saves/Multiplayer/pzserver/
-        rm -f /home/liviouka/Zomboid/db/pzserver.db
+        rm -rf $ZOMBOID_DIR/Saves/Multiplayer/pzserver/
+        rm -f $ZOMBOID_DIR/db/pzserver.db
         echo "✓ Current world and player database deleted"
 
         echo ""

@@ -13,8 +13,9 @@ CYAN='\033[0;36m'
 CRT_GREEN='\033[1;92m'
 NC='\033[0m'
 
-INSTALL_DIR="/home/liviouka/pzserver"
-STEAMCMD_DIR="$INSTALL_DIR/steamcmd"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 
 show_header() {
     clear

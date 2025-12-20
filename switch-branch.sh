@@ -4,8 +4,11 @@
 # Switch between different game versions/branches
 ###############################################################################
 
-STEAMCMD="/home/liviouka/pzserver/steamcmd/steamcmd.sh"
-INSTALL_DIR="/home/liviouka/pzserver"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
+STEAMCMD="$STEAMCMD_DIR/steamcmd.sh"
 
 echo "=================================================="
 echo "Project Zomboid Server - Branch Switcher"
@@ -23,7 +26,7 @@ if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
     fi
     echo ""
     echo "Stopping server..."
-    /home/liviouka/pzserver/stop-all.sh
+    "$SCRIPT_DIR/stop-all.sh"
     sleep 3
 fi
 
@@ -98,15 +101,15 @@ echo ""
 read -p "Create backup before switching? (yes/no): " do_backup
 
 if [ "$do_backup" = "yes" ]; then
-    BACKUP_DIR="/home/liviouka/pzserver/backups"
+    BACKUP_DIR="$INSTALL_DIR/backups"
     mkdir -p "$BACKUP_DIR"
     BACKUP_FILE="$BACKUP_DIR/world-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
 
     echo ""
     echo "Creating backup..."
     tar -czf "$BACKUP_FILE" \
-        /home/liviouka/Zomboid/Saves/Multiplayer/pzserver/ \
-        /home/liviouka/Zomboid/db/pzserver.db \
+        $ZOMBOID_DIR/Saves/Multiplayer/pzserver/ \
+        $ZOMBOID_DIR/db/pzserver.db \
         2>/dev/null
 
     if [ -f "$BACKUP_FILE" ]; then

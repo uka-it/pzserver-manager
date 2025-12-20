@@ -3,10 +3,14 @@
 # Reset Project Zomboid World - Fresh Start
 ###############################################################################
 
-BACKUP_DIR="/home/liviouka/pzserver/backups"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
+BACKUP_DIR="$INSTALL_DIR/backups"
 SERVER_NAME="pzserver"
-SAVE_DIR="$HOME/Zomboid/Saves/Multiplayer/$SERVER_NAME"
-DB_FILE="$HOME/Zomboid/db/$SERVER_NAME.db"
+SAVE_DIR="$ZOMBOID_DIR/Saves/Multiplayer/$SERVER_NAME"
+DB_FILE="$ZOMBOID_DIR/db/$SERVER_NAME.db"
 
 echo "=================================================="
 echo "Project Zomboid World Reset Tool"

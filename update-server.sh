@@ -4,13 +4,17 @@
 # Updates the server to the latest version of the current branch
 ###############################################################################
 
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 echo "=================================================="
 echo "Updating Project Zomboid Server"
 echo "=================================================="
 echo ""
 
 # Detect current branch from Steam manifest
-MANIFEST="/home/liviouka/pzserver/steamapps/appmanifest_380870.acf"
+MANIFEST="$INSTALL_DIR/steamapps/appmanifest_380870.acf"
 
 if [ -f "$MANIFEST" ]; then
     CURRENT_BRANCH=$(grep "BetaKey" "$MANIFEST" | head -1 | sed 's/.*"BetaKey".*"\([^"]*\)".*/\1/')
@@ -47,8 +51,8 @@ echo "Updating $BRANCH_DISPLAY from Steam..."
 echo ""
 
 # Update the server using SteamCMD
-/home/liviouka/pzserver/steamcmd/steamcmd.sh \
-    +force_install_dir /home/liviouka/pzserver \
+$STEAMCMD_DIR/steamcmd.sh \
+    +force_install_dir $INSTALL_DIR \
     +login anonymous \
     +app_update 380870 $BETA_OPTION validate \
     +quit

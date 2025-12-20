@@ -4,7 +4,11 @@
 # Central script to manage all server operations
 ###############################################################################
 
-SCRIPT_DIR="/home/liviouka/pzserver"
+# Get script directory dynamically
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load configuration
+source "$SCRIPT_DIR/config.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -52,7 +56,7 @@ show_menu() {
     echo ""
 
     # Detect current branch
-    MANIFEST="/home/liviouka/pzserver/steamapps/appmanifest_380870.acf"
+    MANIFEST="$INSTALL_DIR/steamapps/appmanifest_380870.acf"
     if [ -f "$MANIFEST" ]; then
         CURRENT_BRANCH=$(grep "BetaKey" "$MANIFEST" | head -1 | sed 's/.*"BetaKey".*"\([^"]*\)".*/\1/')
         BUILD_ID=$(grep "buildid" "$MANIFEST" | head -1 | sed 's/.*"buildid".*"\([^"]*\)".*/\1/')
@@ -224,7 +228,7 @@ while true; do
                         echo -e "${YELLOW}Loading console.txt... (Press 'q' to exit)${NC}"
                         echo ""
                         sleep 1
-                        CONSOLE_LOG=$(ls -t /home/liviouka/Zomboid/Logs/*/console.txt 2>/dev/null | head -1)
+                        CONSOLE_LOG=$(ls -t $ZOMBOID_DIR/Logs/*/console.txt 2>/dev/null | head -1)
                         if [ -n "$CONSOLE_LOG" ]; then
                             less +F "$CONSOLE_LOG"
                         else
@@ -237,7 +241,7 @@ while true; do
                         echo -e "${YELLOW}Loading combined logs... (Press 'q' to exit)${NC}"
                         echo ""
                         sleep 1
-                        CONSOLE_LOG=$(ls -t /home/liviouka/Zomboid/Logs/*/console.txt 2>/dev/null | head -1)
+                        CONSOLE_LOG=$(ls -t $ZOMBOID_DIR/Logs/*/console.txt 2>/dev/null | head -1)
                         if [ -f "$SCRIPT_DIR/server.log" ] || [ -n "$CONSOLE_LOG" ]; then
                             (tail -f "$SCRIPT_DIR/server.log" 2>/dev/null & tail -f "$CONSOLE_LOG" 2>/dev/null) | less +F
                         else

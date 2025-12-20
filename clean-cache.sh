@@ -3,6 +3,10 @@
 # Clean Project Zomboid Cache & Force Re-download from Steam
 ###############################################################################
 
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 echo "=================================================="
 echo "Project Zomboid Cache Cleaner"
 echo "=================================================="
@@ -27,13 +31,13 @@ if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
 fi
 
 # Calculate actual sizes
-WORKSHOP_SIZE=$(du -sh /home/liviouka/pzserver/steamapps/workshop /home/liviouka/Zomboid/Workshop 2>/dev/null | awk '{sum+=$1} END {print sum}' | numfmt --to=iec 2>/dev/null || echo "0")
-LOGS_SIZE=$(du -sh /home/liviouka/Zomboid/Logs 2>/dev/null | awk '{print $1}')
-BACKUP_SIZE=$(du -sh /home/liviouka/Zomboid/Server/backup 2>/dev/null | awk '{print $1}')
+WORKSHOP_SIZE=$(du -sh $INSTALL_DIR/steamapps/workshop $ZOMBOID_DIR/Workshop 2>/dev/null | awk '{sum+=$1} END {print sum}' | numfmt --to=iec 2>/dev/null || echo "0")
+LOGS_SIZE=$(du -sh $ZOMBOID_DIR/Logs 2>/dev/null | awk '{print $1}')
+BACKUP_SIZE=$(du -sh $ZOMBOID_DIR/Server/backup 2>/dev/null | awk '{print $1}')
 
 # If numfmt failed, use du directly
 if [ "$WORKSHOP_SIZE" = "0" ]; then
-    WORKSHOP_SIZE=$(du -sh /home/liviouka/pzserver/steamapps/workshop 2>/dev/null | awk '{print $1}' || echo "0")
+    WORKSHOP_SIZE=$(du -sh $INSTALL_DIR/steamapps/workshop 2>/dev/null | awk '{print $1}' || echo "0")
 fi
 
 echo ""
@@ -50,27 +54,27 @@ read -p "Choose option (1-5): " option
 case $option in
     1)
         echo "Cleaning workshop cache..."
-        rm -rf /home/liviouka/pzserver/steamapps/workshop/*
-        rm -rf /home/liviouka/Zomboid/Workshop/*
+        rm -rf $INSTALL_DIR/steamapps/workshop/*
+        rm -rf $ZOMBOID_DIR/Workshop/*
         echo "✓ Workshop cache cleaned ($WORKSHOP_SIZE freed)"
         ;;
     2)
         echo "Cleaning logs..."
-        rm -rf /home/liviouka/Zomboid/Logs/*
+        rm -rf $ZOMBOID_DIR/Logs/*
         echo "✓ Logs cleaned ($LOGS_SIZE freed)"
         ;;
     3)
         echo "Cleaning server backups..."
-        rm -rf /home/liviouka/Zomboid/Server/backup/*
+        rm -rf $ZOMBOID_DIR/Server/backup/*
         echo "✓ Server backups cleaned ($BACKUP_SIZE freed)"
         ;;
     4)
         echo "Cleaning everything..."
         TOTAL_SIZE=$(echo "$WORKSHOP_SIZE $LOGS_SIZE $BACKUP_SIZE" | awk '{print $1+$2+$3}')
-        rm -rf /home/liviouka/pzserver/steamapps/workshop/*
-        rm -rf /home/liviouka/Zomboid/Workshop/*
-        rm -rf /home/liviouka/Zomboid/Logs/*
-        rm -rf /home/liviouka/Zomboid/Server/backup/*
+        rm -rf $INSTALL_DIR/steamapps/workshop/*
+        rm -rf $ZOMBOID_DIR/Workshop/*
+        rm -rf $ZOMBOID_DIR/Logs/*
+        rm -rf $ZOMBOID_DIR/Server/backup/*
         echo "✓ All cache cleaned"
         ;;
     5)

@@ -1,0 +1,39 @@
+# Server Files
+steamcmd/
+steamapps/
+ProjectZomboid64
+*.jar
+linux64/
+natives/
+java/
+media/
+zombie/
+
+# Logs
+*.log
+server.log
+playit.log
+
+# Backups
+backups/
+*.tar.gz
+
+# Server Data
+Zomboid/
+db/
+
+# User-specific
+*.ini
+*.cfg
+
+# System
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# Temporary
+*.tmp
+*.bak
+nohup.out

@@ -3,8 +3,9 @@
 A comprehensive, beautiful CLI management suite for Project Zomboid dedicated servers on Linux.
 
 ![Project Zomboid](https://img.shields.io/badge/Project%20Zomboid-Dedicated%20Server-red)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-orange)
 ![Platform](https://img.shields.io/badge/platform-Linux-blue)
+![Non-Commercial](https://img.shields.io/badge/use-non--commercial-green)
 
 ## ✨ Features
 
@@ -308,7 +309,23 @@ Contributions welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-MIT License - feel free to use and modify
+**CC BY-NC-SA 4.0** - Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+
+### ✅ You ARE allowed to:
+- Use for personal/non-commercial purposes
+- Modify and improve the code
+- Share with others
+- Create derivative works
+
+### ❌ You are NOT allowed to:
+- Use commercially without permission
+- Sell or profit from this software
+- Use in commercial products/services
+
+### 💼 Commercial Licensing
+For commercial use, please contact the author for licensing arrangements.
+
+See [LICENSE](LICENSE) file for full terms.
 
 ## 🙏 Credits
 

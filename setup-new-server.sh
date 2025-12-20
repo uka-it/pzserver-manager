@@ -115,8 +115,8 @@ configure_server() {
     echo ""
 
     # Get server configuration from user
-    read -p "Enter server name [ShadowZombie Server]: " SERVER_NAME
-    SERVER_NAME=${SERVER_NAME:-"ShadowZombie Server"}
+    read -p "Enter server name [My PZ Server]: " SERVER_NAME
+    SERVER_NAME=${SERVER_NAME:-"My PZ Server"}
 
     read -p "Enter server description [A Project Zomboid Dedicated Server - Welcome Survivors!]: " SERVER_DESC
     SERVER_DESC=${SERVER_DESC:-"A Project Zomboid Dedicated Server - Welcome Survivors!"}
@@ -128,31 +128,97 @@ configure_server() {
     MAX_PLAYERS=${MAX_PLAYERS:-32}
 
     echo ""
-    echo "Choose game branch:"
-    echo "  ${GREEN}[1]${NC} STABLE (Build 41) - Recommended"
-    echo "  ${GREEN}[2]${NC} Build 42.13.1 - Stable Build 42"
-    echo "  ${GREEN}[3]${NC} UNSTABLE - Latest experimental"
+    echo -e "${YELLOW}Querying Steam for available branches...${NC}"
     echo ""
-    read -p "Choose [1-3]: " BRANCH_CHOICE
 
-    case $BRANCH_CHOICE in
-        1)
-            BETA_OPTION=""
-            BRANCH_NAME="STABLE (Build 41)"
-            ;;
-        2)
-            BETA_OPTION="-beta 42.13.1"
-            BRANCH_NAME="Build 42.13.1"
-            ;;
-        3)
-            BETA_OPTION="-beta unstable"
-            BRANCH_NAME="UNSTABLE"
-            ;;
-        *)
-            BETA_OPTION=""
-            BRANCH_NAME="STABLE (Build 41)"
-            ;;
-    esac
+    # Query Steam and extract branch info
+    TEMP_FILE=$(mktemp)
+    "$STEAMCMD_DIR/steamcmd.sh" +login anonymous +app_info_update 1 +app_info_print 380870 +quit > "$TEMP_FILE" 2>&1
+
+    # Extract branches section
+    BRANCHES_DATA=$(sed -n '/"branches"/,/"privatebranches"/p' "$TEMP_FILE")
+
+    # Parse branch names
+    declare -a BRANCHES
+    declare -a DESCRIPTIONS
+
+    # Extract each branch
+    while read -r line; do
+        if echo "$line" | grep -q '^\s*"[^"]*"\s*$'; then
+            BRANCH=$(echo "$line" | sed 's/^\s*"\([^"]*\)"\s*$/\1/')
+
+            # Skip metadata fields
+            if [[ "$BRANCH" == "branches" || "$BRANCH" == "buildid" || "$BRANCH" == "timeupdated" || "$BRANCH" == "description" || "$BRANCH" == "pwdrequired" ]]; then
+                continue
+            fi
+
+            # Look for description
+            DESC="$BRANCH"
+            SEARCH_START=$(grep -n "\"$BRANCH\"" "$TEMP_FILE" | head -1 | cut -d: -f1)
+            if [ -n "$SEARCH_START" ]; then
+                SEARCH_END=$((SEARCH_START + 10))
+                DESC_LINE=$(sed -n "${SEARCH_START},${SEARCH_END}p" "$TEMP_FILE" | grep '"description"' | head -1)
+                if [ -n "$DESC_LINE" ]; then
+                    DESC=$(echo "$DESC_LINE" | sed 's/.*"description"\s*"\([^"]*\)".*/\1/')
+                fi
+            fi
+
+            BRANCHES+=("$BRANCH")
+            DESCRIPTIONS+=("$DESC")
+        fi
+    done <<< "$BRANCHES_DATA"
+
+    rm -f "$TEMP_FILE"
+
+    if [ ${#BRANCHES[@]} -eq 0 ]; then
+        echo -e "${YELLOW}⚠ Could not query branches, using defaults${NC}"
+        BRANCHES=("public" "42.13.1" "unstable")
+        DESCRIPTIONS=("STABLE (Build 41)" "Build 42.13.1" "UNSTABLE")
+    fi
+
+    # Display branches
+    echo "Choose game branch:"
+    echo ""
+
+    for i in "${!BRANCHES[@]}"; do
+        BRANCH="${BRANCHES[$i]}"
+        DESC="${DESCRIPTIONS[$i]}"
+        NUM=$((i + 1))
+
+        # Add helpful labels for known branches
+        if [ "$BRANCH" = "public" ]; then
+            echo -e "  ${GREEN}[$NUM]${NC} STABLE (Build 41) - Recommended"
+        elif [ "$BRANCH" = "42.13.1" ]; then
+            echo -e "  ${GREEN}[$NUM]${NC} Build 42.13.1 - Stable Build 42"
+        elif [ "$BRANCH" = "unstable" ]; then
+            echo -e "  ${GREEN}[$NUM]${NC} UNSTABLE - Latest experimental"
+        else
+            echo -e "  ${GREEN}[$NUM]${NC} $BRANCH"
+            if [ "$DESC" != "$BRANCH" ]; then
+                echo "       $DESC"
+            fi
+        fi
+    done
+
+    echo ""
+    read -p "Choose [1-${#BRANCHES[@]}]: " BRANCH_CHOICE
+
+    # Validate choice
+    if ! [[ "$BRANCH_CHOICE" =~ ^[0-9]+$ ]] || [ "$BRANCH_CHOICE" -lt 1 ] || [ "$BRANCH_CHOICE" -gt "${#BRANCHES[@]}" ]; then
+        echo -e "${YELLOW}Invalid choice, defaulting to STABLE${NC}"
+        BRANCH_CHOICE=1
+    fi
+
+    # Get selected branch
+    SELECTED_BRANCH="${BRANCHES[$((BRANCH_CHOICE - 1))]}"
+
+    if [ "$SELECTED_BRANCH" = "public" ]; then
+        BETA_OPTION=""
+        BRANCH_NAME="STABLE (Build 41)"
+    else
+        BETA_OPTION="-beta $SELECTED_BRANCH"
+        BRANCH_NAME="$SELECTED_BRANCH"
+    fi
 
     echo ""
     echo -e "${GREEN}Configuration saved:${NC}"

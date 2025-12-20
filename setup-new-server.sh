@@ -115,17 +115,25 @@ configure_server() {
     echo ""
 
     # Get server configuration from user
-    read -p "Enter server name [My PZ Server]: " SERVER_NAME
-    SERVER_NAME=${SERVER_NAME:-"My PZ Server"}
+    read -p "Enter server name (press Enter for 'My PZ Server'): " SERVER_NAME
+    if [ -z "$SERVER_NAME" ]; then
+        SERVER_NAME="My PZ Server"
+    fi
 
-    read -p "Enter server description [A Project Zomboid Dedicated Server - Welcome Survivors!]: " SERVER_DESC
-    SERVER_DESC=${SERVER_DESC:-"A Project Zomboid Dedicated Server - Welcome Survivors!"}
+    read -p "Enter server description (press Enter for default): " SERVER_DESC
+    if [ -z "$SERVER_DESC" ]; then
+        SERVER_DESC="A Project Zomboid Dedicated Server - Welcome Survivors!"
+    fi
 
-    read -p "Enter admin password [changeme123]: " ADMIN_PASS
-    ADMIN_PASS=${ADMIN_PASS:-"changeme123"}
+    read -p "Enter admin password (press Enter for 'changeme123'): " ADMIN_PASS
+    if [ -z "$ADMIN_PASS" ]; then
+        ADMIN_PASS="changeme123"
+    fi
 
-    read -p "Enter max players [32]: " MAX_PLAYERS
-    MAX_PLAYERS=${MAX_PLAYERS:-32}
+    read -p "Enter max players (press Enter for '32'): " MAX_PLAYERS
+    if [ -z "$MAX_PLAYERS" ]; then
+        MAX_PLAYERS=32
+    fi
 
     echo ""
     echo -e "${YELLOW}Querying Steam for available branches...${NC}"

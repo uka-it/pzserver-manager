@@ -112,7 +112,8 @@ show_menu() {
     echo ""
     echo -e "${YELLOW}  📋 OTHER${NC}"
     echo -e "    ${GREEN}[11]${NC} View server logs (live)"
-    echo -e "    ${GREEN}[12]${NC} Exit"
+    echo -e "    ${RED}[12]${NC} Uninstall / Cleanup"
+    echo -e "    ${GREEN}[13]${NC} Exit"
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
@@ -120,7 +121,7 @@ show_menu() {
 
 while true; do
     show_menu
-    read -p "Choose option [1-12]: " choice
+    read -p "Choose option [1-13]: " choice
     echo ""
 
     case $choice in
@@ -261,12 +262,16 @@ while true; do
             ;;
         12)
             clear
+            "$SCRIPT_DIR/uninstall.sh"
+            ;;
+        13)
+            clear
             echo -e "${GREEN}Exiting server manager...${NC}"
             echo ""
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please choose 1-12.${NC}"
+            echo -e "${RED}Invalid option. Please choose 1-13.${NC}"
             sleep 2
             ;;
     esac

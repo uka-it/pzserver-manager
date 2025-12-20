@@ -10,29 +10,38 @@ source "$SCRIPT_DIR/config.sh"
 cd "${SCRIPT_DIR}"
 
 echo "=================================================="
-echo "Starting ${SERVER_NAME:-Project Zomboid Server} + Playit.gg Tunnel"
+echo "Starting ${SERVER_NAME:-Project Zomboid Server}"
 echo "=================================================="
 
-# Check if Playit is already running
-if pgrep -x "playit" > /dev/null; then
-    echo "✓ Playit.gg is already running"
-else
-    echo "Starting Playit.gg tunnel agent..."
-    nohup playit start > playit.log 2>&1 &
-    sleep 2
+# Check if Playit.gg is installed and enabled
+if command -v playit &> /dev/null && [ "${PLAYIT_ENABLED}" = "true" ]; then
+    # Check if Playit is already running
     if pgrep -x "playit" > /dev/null; then
-        echo "✓ Playit.gg started successfully"
+        echo "✓ Playit.gg is already running"
     else
-        echo "✗ Failed to start Playit.gg"
-        exit 1
+        echo "Starting Playit.gg tunnel agent..."
+        nohup playit start > playit.log 2>&1 &
+        sleep 2
+        if pgrep -x "playit" > /dev/null; then
+            echo "✓ Playit.gg started successfully"
+        else
+            echo "✗ Failed to start Playit.gg (continuing anyway)"
+        fi
     fi
-fi
 
-# Show tunnel information
-echo ""
-echo "Playit.gg Tunnels:"
-playit tunnels list | grep "=>" | head -4
-echo ""
+    # Show tunnel information
+    echo ""
+    echo "Playit.gg Tunnels:"
+    playit tunnels list 2>/dev/null | grep "=>" | head -4
+    echo ""
+else
+    if [ "${PLAYIT_ENABLED}" != "true" ]; then
+        echo "ℹ Playit.gg is disabled in configuration"
+    else
+        echo "ℹ Playit.gg is not installed (server will use direct connection)"
+    fi
+    echo ""
+fi
 
 # Check if PZ server is already running
 if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then

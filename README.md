@@ -38,9 +38,17 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 - **Log Viewer** - Server output, game console, or combined view
 
 ### 🌐 Network Tunneling
-- **Playit.gg Integration** - Built-in tunneling for CGNAT/NAT
+- **Playit.gg Integration** - Optional tunneling for CGNAT/NAT
 - **Auto-Setup** - Guided Playit.gg configuration
 - **Status Monitoring** - Real-time tunnel status
+- **Works Without Playit** - Server runs fine with direct connection
+
+### 🗑️ Uninstall / Cleanup
+- **Selective Removal** - Choose what to uninstall
+- **Server Files Only** - Remove installation, keep world data
+- **World Data Only** - Fresh world, keep server files
+- **Playit.gg Only** - Remove tunneling service
+- **Complete Uninstall** - Remove everything
 
 ## 📦 Installation
 
@@ -138,7 +146,8 @@ Launch the management console:
 
 **📋 OTHER**
 - `[11]` View server logs (live)
-- `[12]` Exit
+- `[12]` Uninstall / Cleanup
+- `[13]` Exit
 
 ### Individual Scripts
 
@@ -186,9 +195,8 @@ pzserver-manager/
 ├── clean-cache.sh             # Cache/workshop cleaner
 ├── reset-world.sh             # World reset tool
 ├── manage-backups.sh          # Backup manager
-├── start-pzserver.sh          # PZ server starter
-├── start-ipv6-proxy.sh        # IPv6 proxy (optional)
-└── stop-ipv6-proxy.sh         # Stop IPv6 proxy
+├── uninstall.sh               # Uninstall/cleanup tool
+└── start-pzserver.sh          # PZ server starter
 ```
 
 ## 🔑 Default Configuration
@@ -307,21 +315,27 @@ Or directly:
 
 ## 🗑️ Uninstallation
 
-To completely remove the server:
+Use the built-in uninstall script with options:
 
 ```bash
-# Stop services
-./stop-all.sh
+./server-manager.sh
+# Choose [12] Uninstall / Cleanup
 
-# Remove server files
-rm -rf ~/pzserver
-
-# Remove server data
-rm -rf ~/Zomboid
-
-# Remove Playit.gg (optional)
-sudo apt remove playit
+# Or run directly:
+./uninstall.sh
 ```
+
+**Options:**
+1. Server files only - Remove installation, keep worlds
+2. World data only - Fresh world, keep server
+3. Playit.gg only - Remove tunneling
+4. Everything - Complete removal
+
+The uninstall script will:
+- Stop all running services
+- Show sizes before removal
+- Ask for confirmation
+- Provide detailed feedback
 
 ## 🤝 Contributing
 

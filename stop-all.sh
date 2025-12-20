@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
 echo "=================================================="
-echo "Stopping ${SERVER_NAME:-Project Zomboid Server} + Playit.gg"
+echo "Stopping ${SERVER_NAME:-Project Zomboid Server}"
 echo "=================================================="
 
 # Stop Project Zomboid server
@@ -21,14 +21,12 @@ else
     echo "ℹ Project Zomboid server is not running"
 fi
 
-# Stop Playit.gg
+# Stop Playit.gg (only if it's running)
 if pgrep -x "playit" > /dev/null; then
     echo "Stopping Playit.gg tunnel..."
     pkill playit
     sleep 1
     echo "✓ Playit.gg stopped"
-else
-    echo "ℹ Playit.gg is not running"
 fi
 
 echo ""

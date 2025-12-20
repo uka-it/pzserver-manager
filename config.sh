@@ -39,4 +39,4 @@ fi
 
 # Zomboid data directory (usually in user's home)
 export ZOMBOID_DIR="$HOME/Zomboid"
-export SERVER_CONFIG_DIR="$HOME/.local/share/Zomboid/Server/pzserver"
+export SERVER_CONFIG_DIR="$ZOMBOID_DIR/Server/pzserver"

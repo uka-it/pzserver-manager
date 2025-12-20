@@ -302,8 +302,10 @@ create_server_config() {
     echo ""
     echo "Creating server configuration..."
 
-    CONFIG_DIR="$HOME/.local/share/Zomboid/Server/pzserver"
+    CONFIG_DIR="$ZOMBOID_DIR/Server/pzserver"
     mkdir -p "$CONFIG_DIR"
+
+    echo "  Creating: $CONFIG_DIR/pzserver.ini"
 
     cat > "$CONFIG_DIR/pzserver.ini" << EOF
 # Server Configuration
@@ -400,7 +402,10 @@ SteamPort1=$((16261 + 1))
 SteamPort2=$((16261 + 2))
 EOF
 
+    echo ""
     echo -e "${GREEN}✓ Server configuration created${NC}"
+    echo "  Admin Password: $ADMIN_PASS"
+    echo "  Config Location: $CONFIG_DIR/pzserver.ini"
 }
 
 create_management_scripts() {
@@ -441,7 +446,7 @@ show_completion() {
     echo ""
     echo -e "${YELLOW}3. Admin Password:${NC}"
     echo "   Password: $ADMIN_PASS"
-    echo "   (Change in: ~/.local/share/Zomboid/Server/pzserver/pzserver.ini)"
+    echo "   (Change in: $SERVER_CONFIG_DIR/pzserver.ini)"
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""

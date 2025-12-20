@@ -403,9 +403,22 @@ SteamPort2=$((16261 + 2))
 EOF
 
     echo ""
-    echo -e "${GREEN}✓ Server configuration created${NC}"
-    echo "  Admin Password: $ADMIN_PASS"
-    echo "  Config Location: $CONFIG_DIR/pzserver.ini"
+
+    # Verify the config was created and contains the password
+    if [ -f "$CONFIG_DIR/pzserver.ini" ]; then
+        if grep -q "AdminPassword=$ADMIN_PASS" "$CONFIG_DIR/pzserver.ini"; then
+            echo -e "${GREEN}✓ Server configuration created successfully${NC}"
+            echo "  Admin Password: $ADMIN_PASS"
+            echo "  Config Location: $CONFIG_DIR/pzserver.ini"
+        else
+            echo -e "${YELLOW}⚠ Config created but password verification failed${NC}"
+            echo "  Location: $CONFIG_DIR/pzserver.ini"
+            echo "  You may need to manually set: AdminPassword=$ADMIN_PASS"
+        fi
+    else
+        echo -e "${RED}✗ Failed to create config file${NC}"
+        echo "  Expected at: $CONFIG_DIR/pzserver.ini"
+    fi
 }
 
 create_management_scripts() {

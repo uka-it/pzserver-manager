@@ -136,27 +136,28 @@ Launch the management console:
 **⚙ SERVER CONTROL**
 - `[1]` Start server + Playit.gg tunnel
 - `[2]` Start server only (no tunnel)
-- `[3]` Stop server (and Playit.gg)
-- `[4]` Restart server
-- `[5]` View server status
+- `[3]` Stop all (server + Playit.gg)
+- `[4]` Stop server only (keep Playit.gg)
+- `[5]` Restart server
+- `[6]` View server status
 
 **🌐 PLAYIT.GG TUNNEL**
-- `[6]` Manage Playit.gg (start/stop/claim URL)
+- `[7]` Manage Playit.gg (start/stop/claim URL)
 
 **🔧 MAINTENANCE**
-- `[7]` Update server files
-- `[8]` Switch game branch/version
-- `[9]` Clean cache & workshop files
-- `[10]` Setup new server (automated install)
+- `[8]` Update server files
+- `[9]` Switch game branch/version
+- `[10]` Clean cache & workshop files
+- `[11]` Setup new server (automated install)
 
 **🌍 WORLD MANAGEMENT**
-- `[11]` Reset world (fresh start)
-- `[12]` Manage backups (view/restore/delete)
+- `[12]` Reset world (fresh start)
+- `[13]` Manage backups (view/restore/delete)
 
 **📋 OTHER**
-- `[13]` View server logs (live)
-- `[14]` Uninstall / Cleanup
-- `[15]` Exit
+- `[14]` View server logs (live)
+- `[15]` Uninstall / Cleanup
+- `[16]` Exit
 
 ### Individual Scripts
 
@@ -207,6 +208,7 @@ pzserver-manager/
 ├── manage-playit.sh           # Playit.gg manager
 ├── uninstall.sh               # Uninstall/cleanup tool
 ├── start-server-only.sh       # Start without Playit.gg
+├── stop-server-only.sh        # Stop server, keep Playit.gg
 └── start-pzserver.sh          # PZ server starter
 ```
 

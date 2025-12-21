@@ -328,6 +328,14 @@ PLAYIT_ENABLED=true
 EOF
 
     echo -e "${GREEN}✓ Configuration saved to .env${NC}"
+
+    # Remove admin flag to ensure password is applied on first start
+    ADMIN_FLAG="$SCRIPT_DIR/.admin_created"
+    if [ -f "$ADMIN_FLAG" ]; then
+        rm -f "$ADMIN_FLAG"
+        echo -e "${GREEN}✓ Removed admin flag${NC}"
+    fi
+
     echo ""
     echo -e "${CYAN}Configuration Summary:${NC}"
     echo "  Server Name: $SERVER_NAME"

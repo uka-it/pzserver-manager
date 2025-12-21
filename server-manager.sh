@@ -10,17 +10,93 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Load configuration
 source "$SCRIPT_DIR/config.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Colors (REAL ESC bytes so printf renders colors correctly)
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+BLUE=$'\033[0;34m'
+CYAN=$'\033[0;36m'
+NC=$'\033[0m' # No Color
 
+###############################################################################
+# Box / Frame helpers (no more counting spaces)
+###############################################################################
+BOX_INNER=78 # width of content inside the frame (not counting the side padding spaces)
+
+_repeat_char() {
+    local n="$1"
+    local ch="$2"
+    local out=""
+    local i
+    for ((i=0; i<n; i++)); do
+        out+="$ch"
+    done
+    printf "%s" "$out"
+}
+
+_strip_ansi() {
+    # Strip ANSI escape sequences for length calculations
+    printf '%s' "$1" | sed -r $'s/\x1B\\[[0-9;]*[[:alpha:]]//g'
+}
+
+box_top() {
+    printf "${CYAN}╔%s╗${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
+}
+
+box_mid() {
+    printf "${CYAN}╠%s╣${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
+}
+
+box_bottom() {
+    printf "${CYAN}╚%s╝${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
+}
+
+box_line() {
+    local s="$1"
+    local plain len pad
+    plain="$(_strip_ansi "$s")"
+    len=${#plain}
+    pad=$((BOX_INNER - len))
+    ((pad < 0)) && pad=0
+
+    printf "${CYAN}║${NC} %s%*s ${CYAN}║${NC}\n" "$s" "$pad" ""
+}
+
+box_empty() {
+    box_line ""
+}
+
+box_title_center() {
+    local s="$1"
+    local plain len left right
+    plain="$(_strip_ansi "$s")"
+    len=${#plain}
+
+    if ((len >= BOX_INNER)); then
+        box_line "$s"
+        return
+    fi
+
+    left=$(( (BOX_INNER - len) / 2 ))
+    right=$(( BOX_INNER - len - left ))
+
+    printf "${CYAN}║${NC} %*s%s%*s ${CYAN}║${NC}\n" "$left" "" "$s" "$right" ""
+}
+
+box_header() {
+    local title="$1"
+    box_top
+    box_title_center "$title"
+    box_bottom
+    echo ""
+}
+
+###############################################################################
+# Header
+###############################################################################
 show_header() {
     # CRT Phosphor Green
-    local CRT_GREEN='\033[1;92m'
+    local CRT_GREEN=$'\033[1;92m'
 
     echo -e "${RED}"
     cat << 'EOF'
@@ -46,13 +122,12 @@ EOF
     echo -e "${NC}"
 }
 
+###############################################################################
+# Menu
+###############################################################################
 show_menu() {
     clear
     show_header
-
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                          ${YELLOW}SERVER MANAGEMENT CONSOLE${CYAN}                           ║${NC}"
-    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
     echo ""
 
     # Detect current branch
@@ -98,46 +173,62 @@ show_menu() {
     fi
     [ -z "$SERVER_MEMORY" ] && SERVER_MEMORY="8G (default)"
 
-    echo -e "  ${BLUE}Server Status:${NC}    $SERVER_STATUS"
-    echo -e "  ${BLUE}Playit.gg:${NC}       $PLAYIT_STATUS"
-    echo -e "  ${BLUE}Game Branch:${NC}     ${CYAN}$BRANCH_DISPLAY${NC}"
-    echo -e "  ${BLUE}Server IP:${NC}       ${CYAN}$SERVER_IP${NC}"
-    echo -e "  ${BLUE}Server Ports:${NC}    ${CYAN}$DEFAULT_PORT${NC} (UDP: ${CYAN}$UDP_PORT${NC})"
-    echo -e "  ${BLUE}Steam Ports:${NC}     ${CYAN}$STEAM_PORT1${NC}, ${CYAN}$STEAM_PORT2${NC}"
-    echo -e "  ${BLUE}Server Memory:${NC}   ${CYAN}$SERVER_MEMORY${NC}"
-    echo ""
-    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
-    echo ""
-    echo -e "${YELLOW}  ⚙  SERVER CONTROL${NC}"
-    echo -e "    ${GREEN}[1]${NC} Start server"
-    echo -e "    ${GREEN}[2]${NC} Stop server"
-    echo -e "    ${GREEN}[3]${NC} Restart server"
-    echo -e "    ${GREEN}[4]${NC} View server status"
-    echo ""
-    echo -e "${YELLOW}  🌐 PLAYIT.GG TUNNEL${NC}"
-    echo -e "    ${GREEN}[5]${NC} Start Playit.gg tunnel"
-    echo -e "    ${GREEN}[6]${NC} Stop Playit.gg tunnel"
-    echo -e "    ${GREEN}[7]${NC} Manage Playit.gg (install/setup/uninstall)"
-    echo ""
-    echo -e "${YELLOW}  🔧 MAINTENANCE${NC}"
-    echo -e "    ${GREEN}[8]${NC} Update server files"
-    echo -e "    ${GREEN}[9]${NC} Switch game branch/version"
-    echo -e "    ${GREEN}[10]${NC} Clean cache & workshop files"
-    echo -e "    ${GREEN}[11]${NC} Setup new server (automated install)"
-    echo ""
-    echo -e "${YELLOW}  🌍 WORLD MANAGEMENT${NC}"
-    echo -e "    ${GREEN}[12]${NC} Reset world (fresh start)"
-    echo -e "    ${GREEN}[13]${NC} Manage backups (view/restore/delete)"
-    echo ""
-    echo -e "${YELLOW}  📋 OTHER${NC}"
-    echo -e "    ${GREEN}[14]${NC} View server logs (live)"
-    echo -e "    ${RED}[15]${NC} Uninstall / Cleanup"
-    echo -e "    ${GREEN}[x]${NC} Exit"
-    echo ""
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
+    # Frame
+    box_top
+    box_title_center "${YELLOW}SERVER MANAGEMENT CONSOLE${NC}"
+    box_mid
+    box_empty
+
+    box_line "  ${BLUE}Server Status:${NC}    $SERVER_STATUS"
+    box_line "  ${BLUE}Playit.gg:${NC}       $PLAYIT_STATUS"
+    box_line "  ${BLUE}Game Branch:${NC}     ${CYAN}$BRANCH_DISPLAY${NC}"
+    box_line "  ${BLUE}Server IP:${NC}       ${CYAN}$SERVER_IP${NC}"
+    box_line "  ${BLUE}Server Ports:${NC}    ${CYAN}$DEFAULT_PORT${NC} (UDP: ${CYAN}$UDP_PORT${NC})"
+    box_line "  ${BLUE}Steam Ports:${NC}     ${CYAN}$STEAM_PORT1${NC}, ${CYAN}$STEAM_PORT2${NC}"
+    box_line "  ${BLUE}Server Memory:${NC}   ${CYAN}$SERVER_MEMORY${NC}"
+
+    box_empty
+    box_mid
+    box_empty
+
+    box_line "${YELLOW}  ⚙  SERVER CONTROL${NC}"
+    box_line "    ${GREEN}[1]${NC} Start server"
+    box_line "    ${GREEN}[2]${NC} Stop server"
+    box_line "    ${GREEN}[3]${NC} Restart server"
+    box_line "    ${GREEN}[4]${NC} View server status"
+
+    box_empty
+    box_line "${YELLOW}  🌐 PLAYIT.GG TUNNEL${NC}"
+    box_line "    ${GREEN}[5]${NC} Start Playit.gg tunnel"
+    box_line "    ${GREEN}[6]${NC} Stop Playit.gg tunnel"
+    box_line "    ${GREEN}[7]${NC} Manage Playit.gg (install/setup/uninstall)"
+
+    box_empty
+    box_line "${YELLOW}  🔧 MAINTENANCE${NC}"
+    box_line "    ${GREEN}[8]${NC} Update server files"
+    box_line "    ${GREEN}[9]${NC} Switch game branch/version"
+    box_line "    ${GREEN}[10]${NC} Clean cache & workshop files"
+    box_line "    ${GREEN}[11]${NC} Setup new server (automated install)"
+
+    box_empty
+    box_line "${YELLOW}  🌍 WORLD MANAGEMENT${NC}"
+    box_line "    ${GREEN}[12]${NC} Reset world (fresh start)"
+    box_line "    ${GREEN}[13]${NC} Manage backups (view/restore/delete)"
+
+    box_empty
+    box_line "${YELLOW}  📋 OTHER${NC}"
+    box_line "    ${GREEN}[14]${NC} View server logs (live)"
+    box_line "    ${RED}[15]${NC} Uninstall / Cleanup"
+    box_line "    ${GREEN}[x]${NC} Exit"
+
+    box_empty
+    box_bottom
     echo ""
 }
 
+###############################################################################
+# Main loop
+###############################################################################
 while true; do
     show_menu
     read -p "Choose option [1-15, x]: " choice
@@ -253,6 +344,7 @@ while true; do
         14)
             while true; do
                 clear
+                # Logs menu (kept as-is; you can also convert this to box_* if you want)
                 echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
                 echo -e "${CYAN}║                              ${YELLOW}SERVER LOGS${CYAN}                                    ║${NC}"
                 echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
@@ -284,7 +376,7 @@ while true; do
                         echo -e "${YELLOW}Loading console.txt... (Press 'q' to exit)${NC}"
                         echo ""
                         sleep 1
-                        CONSOLE_LOG=$(ls -t $ZOMBOID_DIR/Logs/*/console.txt 2>/dev/null | head -1)
+                        CONSOLE_LOG=$(ls -t "$ZOMBOID_DIR"/Logs/*/console.txt 2>/dev/null | head -1)
                         if [ -n "$CONSOLE_LOG" ]; then
                             less +F "$CONSOLE_LOG"
                         else
@@ -297,7 +389,7 @@ while true; do
                         echo -e "${YELLOW}Loading combined logs... (Press 'q' to exit)${NC}"
                         echo ""
                         sleep 1
-                        CONSOLE_LOG=$(ls -t $ZOMBOID_DIR/Logs/*/console.txt 2>/dev/null | head -1)
+                        CONSOLE_LOG=$(ls -t "$ZOMBOID_DIR"/Logs/*/console.txt 2>/dev/null | head -1)
                         if [ -f "$SCRIPT_DIR/server.log" ] || [ -n "$CONSOLE_LOG" ]; then
                             (tail -f "$SCRIPT_DIR/server.log" 2>/dev/null & tail -f "$CONSOLE_LOG" 2>/dev/null) | less +F
                         else
@@ -331,3 +423,4 @@ while true; do
             ;;
     esac
 done
+

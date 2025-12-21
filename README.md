@@ -49,7 +49,7 @@ Everything else in the menu is optional maintenance.
 ### 🚀 Automated Setup
 - **One-Command Installation** - Complete server setup from scratch
 - **Dependency Management** - Auto-installs SteamCMD, Playit.gg, system packages
-- **Branch Selection** - Choose Stable, 42.13.1, or Unstable
+- **Branch Selection** - Choose from available branches.
 - **Configuration Wizard** - Interactive server configuration
 
 ### 🔧 Server Management
@@ -70,7 +70,6 @@ Everything else in the menu is optional maintenance.
 
 ### 🌐 Network Tunneling
 - **Playit.gg Integration** - Optional tunneling for CGNAT/NAT
-- **Separate Start Options** - Start with or without tunnel
 - **Playit Manager** - Dedicated management menu
   - Start/Stop tunnel independently
   - View claim URL for account activation
@@ -455,5 +454,6 @@ See [LICENSE](LICENSE) file for full terms.
 ---
 
 **Made with 💀 for the Project Zomboid community**
+
 
 

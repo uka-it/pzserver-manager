@@ -142,16 +142,17 @@ show_menu() {
     box_empty
     box_line "${YELLOW}  ⚙  CONFIGURATION${NC} "
     box_line "    ${GREEN}[12]${NC} Edit server config files"
+    box_line "    ${GREEN}[13]${NC} Reset admin password"
 
     box_empty
     box_line "${YELLOW}  🌍 WORLD MANAGEMENT${NC}"
-    box_line "    ${GREEN}[13]${NC} Reset world (fresh start)"
-    box_line "    ${GREEN}[14]${NC} Manage backups (view/restore/delete)"
+    box_line "    ${GREEN}[14]${NC} Reset world (fresh start)"
+    box_line "    ${GREEN}[15]${NC} Manage backups (view/restore/delete)"
 
     box_empty
     box_line "${YELLOW}  📋 OTHER${NC}"
-    box_line "    ${GREEN}[15]${NC} View server logs (live)"
-    box_line "    ${RED}[16]${NC} Uninstall / Cleanup"
+    box_line "    ${GREEN}[16]${NC} View server logs (live)"
+    box_line "    ${RED}[17]${NC} Uninstall / Cleanup"
     box_line "    ${GREEN}[x]${NC} Exit"
 
     box_empty
@@ -164,7 +165,7 @@ show_menu() {
 ###############################################################################
 while true; do
     show_menu
-    read -p "Choose option [1-16, x]: " choice
+    read -p "Choose option [1-17, x]: " choice
     echo ""
 
     case $choice in
@@ -268,17 +269,23 @@ while true; do
             ;;
         13)
             clear
-            "$SCRIPT_DIR/reset-world.sh"
+            "$SCRIPT_DIR/reset-admin-password.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         14)
             clear
-            "$SCRIPT_DIR/manage-backups.sh"
+            "$SCRIPT_DIR/reset-world.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         15)
+            clear
+            "$SCRIPT_DIR/manage-backups.sh"
+            echo ""
+            read -p "Press Enter to continue..."
+            ;;
+        16)
             while true; do
                 clear
                 box_header "${YELLOW}SERVER LOGS${NC}"
@@ -343,7 +350,7 @@ while true; do
                 esac
             done
             ;;
-        16)
+        17)
             clear
             "$SCRIPT_DIR/uninstall.sh"
             ;;
@@ -354,7 +361,7 @@ while true; do
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please choose 1-16 or x to exit.${NC}"
+            echo -e "${RED}Invalid option. Please choose 1-17 or x to exit.${NC}"
             sleep 2
             ;;
     esac

@@ -16,6 +16,85 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+###############################################################################
+# Box / Frame helpers (no more counting spaces)
+###############################################################################
+BOX_INNER=78 # width of content inside the frame (not counting the side padding spaces)
+
+_repeat_char() {
+    local n="$1"
+    local ch="$2"
+    local out=""
+    local i
+    for ((i=0; i<n; i++)); do
+        out+="$ch"
+    done
+    printf "%s" "$out"
+}
+
+_strip_ansi() {
+    # Strip ANSI escape sequences for length calculations
+    # (This won't perfectly handle emoji/ambiguous-width glyphs, but fixes the "counting spaces" problem.)
+    printf '%s' "$1" | sed -r $'s/\x1B\\[[0-9;]*[[:alpha:]]//g'
+}
+
+box_top() {
+    printf "${CYAN}╔%s╗${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
+}
+
+box_mid() {
+    printf "${CYAN}╠%s╣${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
+}
+
+box_bottom() {
+    printf "${CYAN}╚%s╝${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
+}
+
+box_line() {
+    local s="$1"
+    local plain len pad
+    plain="$(_strip_ansi "$s")"
+    len=${#plain}
+    pad=$((BOX_INNER - len))
+    ((pad < 0)) && pad=0
+
+    # Left border cyan, inside normal, right border cyan
+    printf "${CYAN}║${NC} %s%*s ${CYAN}║${NC}\n" "$s" "$pad" ""
+}
+
+box_empty() {
+    box_line ""
+}
+
+box_title_center() {
+    local s="$1"
+    local plain len left right
+    plain="$(_strip_ansi "$s")"
+    len=${#plain}
+
+    if ((len >= BOX_INNER)); then
+        # If too long, just print it (will spill but avoids weird negative padding)
+        box_line "$s"
+        return
+    fi
+
+    left=$(( (BOX_INNER - len) / 2 ))
+    right=$(( BOX_INNER - len - left ))
+
+    printf "${CYAN}║${NC} %*s%s%*s ${CYAN}║${NC}\n" "$left" "" "$s" "$right" ""
+}
+
+box_header() {
+    local title="$1"
+    box_top
+    box_title_center "$title"
+    box_bottom
+    echo ""
+}
+
+###############################################################################
+# UI
+###############################################################################
 show_header() {
     clear
     # CRT Phosphor Green
@@ -48,10 +127,7 @@ EOF
 
 install_playit() {
     show_header
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                            ${YELLOW}INSTALL PLAYIT.GG${CYAN}                                   ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}INSTALL PLAYIT.GG${NC}"
 
     if command -v playit &> /dev/null; then
         echo -e "${YELLOW}✓ Playit.gg is already installed${NC}"
@@ -93,10 +169,7 @@ install_playit() {
 
 uninstall_playit() {
     show_header
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                           ${YELLOW}UNINSTALL PLAYIT.GG${CYAN}                                  ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}UNINSTALL PLAYIT.GG${NC}"
 
     if ! command -v playit &> /dev/null; then
         echo -e "${YELLOW}Playit.gg is not installed${NC}"
@@ -158,32 +231,36 @@ show_menu() {
         PLAYIT_PID="N/A"
     fi
 
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                        ${YELLOW}PLAYIT.GG TUNNEL MANAGER${CYAN}                               ║${NC}"
-    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
-    echo ""
-    echo -e "  ${BLUE}Installation Status:${NC} $INSTALLED"
+    box_top
+    box_title_center "${YELLOW}PLAYIT.GG TUNNEL MANAGER${NC}"
+    box_mid
+    box_empty
+
+    box_line "  ${BLUE}Installation Status:${NC} $INSTALLED"
     if [ "$STATUS" != "N/A" ]; then
-        echo -e "  ${BLUE}Service Status:${NC}     $STATUS"
+        box_line "  ${BLUE}Service Status:${NC}     $STATUS"
         if [ "$PLAYIT_PID" != "N/A" ]; then
-            echo -e "  ${BLUE}Process ID:${NC}         $PLAYIT_PID"
+            box_line "  ${BLUE}Process ID:${NC}         $PLAYIT_PID"
         fi
     fi
-    echo ""
-    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${CYAN}║                                                                                ║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[1]${NC} Install Playit.gg                                     ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[2]${NC} Start Playit.gg tunnel                                ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[3]${NC} Stop Playit.gg tunnel                                 ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[4]${NC} Restart Playit.gg tunnel                              ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[5]${NC} View active tunnels                                   ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[6]${NC} Get claim URL / Manage account                        ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[7]${NC} Setup new tunnels                                     ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[8]${NC} View Playit.gg logs                                   ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${RED}[9]${NC} Uninstall Playit.gg                                     ${CYAN}║${NC}"
-    echo -e "${CYAN}║  ${GREEN}[0]${NC} Back to main menu                                     ${CYAN}║${NC}"
-    echo -e "${CYAN}║                                                                                ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
+
+    box_empty
+    box_mid
+    box_empty
+
+    box_line "  ${GREEN}[1]${NC} Install Playit.gg"
+    box_line "  ${GREEN}[2]${NC} Start Playit.gg tunnel"
+    box_line "  ${GREEN}[3]${NC} Stop Playit.gg tunnel"
+    box_line "  ${GREEN}[4]${NC} Restart Playit.gg tunnel"
+    box_line "  ${GREEN}[5]${NC} View active tunnels"
+    box_line "  ${GREEN}[6]${NC} Get claim URL / Manage account"
+    box_line "  ${GREEN}[7]${NC} Setup new tunnels"
+    box_line "  ${GREEN}[8]${NC} View Playit.gg logs"
+    box_line "  ${RED}[9]${NC} Uninstall Playit.gg"
+    box_line "  ${GREEN}[0]${NC} Back to main menu"
+
+    box_empty
+    box_bottom
     echo ""
 }
 
@@ -274,10 +351,7 @@ restart_playit() {
 
 view_tunnels() {
     show_header
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                              ${YELLOW}ACTIVE TUNNELS${CYAN}                                   ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}ACTIVE TUNNELS${NC}"
 
     if ! pgrep -x "playit" > /dev/null; then
         echo -e "${YELLOW}⚠ Playit.gg is not running${NC}"
@@ -293,10 +367,7 @@ view_tunnels() {
 
 get_claim_url() {
     show_header
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                      ${YELLOW}PLAYIT.GG ACCOUNT MANAGEMENT${CYAN}                            ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}PLAYIT.GG ACCOUNT MANAGEMENT${NC}"
 
     # Try to get account info
     echo -e "${BLUE}Retrieving account information...${NC}"
@@ -347,10 +418,7 @@ get_claim_url() {
 
 setup_tunnels() {
     show_header
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                         ${YELLOW}SETUP PLAYIT.GG TUNNELS${CYAN}                               ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}SETUP PLAYIT.GG TUNNELS${NC}"
 
     echo -e "${YELLOW}This will run the Playit.gg setup wizard.${NC}"
     echo ""
@@ -377,10 +445,7 @@ setup_tunnels() {
 
 view_logs() {
     show_header
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                             ${YELLOW}PLAYIT.GG LOGS${CYAN}                                   ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}PLAYIT.GG LOGS${NC}"
 
     if [ -f "$SCRIPT_DIR/playit.log" ]; then
         echo -e "${YELLOW}Showing last 50 lines (Press 'q' to exit)${NC}"
@@ -442,3 +507,4 @@ while true; do
             ;;
     esac
 done
+

@@ -7,16 +7,55 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
 BACKUP_DIR="$INSTALL_DIR/backups"
 SERVER_NAME="pzserver"
 SAVE_DIR="$ZOMBOID_DIR/Saves/Multiplayer/$SERVER_NAME"
 DB_FILE="$ZOMBOID_DIR/db/$SERVER_NAME.db"
 
-echo "=================================================="
-echo "Project Zomboid World Reset Tool"
-echo "=================================================="
+show_header() {
+    clear
+    # CRT Phosphor Green
+    local CRT_GREEN='\033[1;92m'
+
+    echo -e "${RED}"
+    cat << 'EOF'
+ ██▓███   ██▀███   ▒█████   ▄▄▄██▀▀▀▓█████  ▄████▄  ▄▄▄█████▓   ▒███████▒ ▒█████   ███▄ ▄███▓ ▄▄▄▄    ▒█████   ██▓▓█████▄
+▓██░  ██▒▓██ ▒ ██▒▒██▒  ██▒   ▒██   ▓█   ▀ ▒██▀ ▀█  ▓  ██▒ ▓▒   ▒ ▒ ▒ ▄▀░▒██▒  ██▒▓██▒▀█▀ ██▒▓█████▄ ▒██▒  ██▒▓██▒▒██▀ ██▌
+▓██░ ██▓▒▓██ ░▄█ ▒▒██░  ██▒   ░██   ▒███   ▒▓█    ▄ ▒ ▓██░ ▒░   ░ ▒ ▄▀▒░ ▒██░  ██▒▓██    ▓██░▒██▒ ▄██▒██░  ██▒▒██▒░██   █▌
+▒██▄█▓▒ ▒▒██▀▀█▄  ▒██   ██░▓██▄██▓  ▒▓█  ▄ ▒▓▓▄ ▄██▒░ ▓██▓ ░      ▄▀▒   ░▒██   ██░▒██    ▒██ ▒██░█▀  ▒██   ██░░██░░▓█▄   ▌
+▒██▒ ░  ░░██▓ ▒██▒░ ████▓▒░ ▓███▒   ░▒████▒▒ ▓███▀ ░  ▒██▒ ░    ▒███████▒░ ████▓▒░▒██▒   ░██▒░▓█  ▀█▓░ ████▓▒░░██░░▒████▓
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░ ▒░▒░▒░  ▒▓▒▒░   ░░ ▒░ ░░ ░▒ ▒  ░  ▒ ░░      ░▒▒ ▓░▒░▒░ ▒░▒░▒░ ░ ▒░   ░  ░░▒▓███▀▒░ ▒░▒░▒░ ░▓   ▒▒▓  ▒
+░▒ ░       ░▒ ░ ▒░  ░ ▒ ▒░  ▒ ░▒░    ░ ░  ░  ░  ▒       ░       ░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░  ░      ░▒░▒   ░   ░ ▒ ▒░  ▒ ░ ░ ▒  ▒
+░░         ░░   ░ ░ ░ ░ ▒   ░ ░ ░      ░   ░          ░         ░ ░ ░ ░ ░░ ░ ░ ▒  ░      ░    ░    ░ ░ ░ ░ ▒   ▒ ░ ░ ░  ░
+            ░         ░ ░   ░   ░      ░  ░░ ░                    ░ ░        ░ ░         ░    ░          ░ ░   ░     ░
+                                           ░                    ░                                  ░               ░
+EOF
+    echo -e "${CRT_GREEN}"
+    cat << 'EOF'
+▄▄▄▄▄▄            ▄▄                                ▄▄    ▄▄▄▄▄▄▄
+███▀▀██▄          ██ ▀▀               ██            ██   █████▀▀▀
+███  ███ ▄█▀█▄ ▄████ ██  ▄████  ▀▀█▄ ▀██▀▀ ▄█▀█▄ ▄████    ▀████▄  ▄█▀█▄ ████▄ ██ ██ ▄█▀█▄ ████▄
+███  ███ ██▄█▀ ██ ██ ██  ██    ▄█▀██  ██   ██▄█▀ ██ ██      ▀████ ██▄█▀ ██ ▀▀ ██▄██ ██▄█▀ ██ ▀▀
+██████▀  ▀█▄▄▄ ▀████ ██▄ ▀████ ▀█▄██  ██   ▀█▄▄▄ ▀████   ███████▀ ▀█▄▄▄ ██     ▀█▀  ▀█▄▄▄ ██
+EOF
+    echo -e "${NC}"
+    echo ""
+}
+
+show_header
+echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║                            ${YELLOW}RESET WORLD TOOL${CYAN}                                   ║${NC}"
+echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "This will DELETE all world data and start fresh!"
+echo -e "${RED}This will DELETE all world data and start fresh!${NC}"
 echo ""
 
 # Check if server is running
@@ -91,18 +130,18 @@ if [ -f "$DB_FILE" ]; then
 fi
 
 echo ""
-echo "=================================================="
-echo "✓ World Reset Complete!"
-echo "=================================================="
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}✓ World Reset Complete!${NC}"
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo "The server will create a fresh new world on next start."
 echo ""
-echo "To start the server:"
+echo -e "${YELLOW}To start the server:${NC}"
 echo "  ./start-all.sh"
 echo ""
 
 if [ "$do_backup" = "yes" ]; then
-    echo "Your old world backup is saved at:"
+    echo -e "${BLUE}Your old world backup is saved at:${NC}"
     echo "  $BACKUP_FILE"
     echo ""
 fi

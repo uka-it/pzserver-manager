@@ -101,22 +101,24 @@ show_menu() {
     echo -e "    ${GREEN}[4]${NC} View server status"
     echo ""
     echo -e "${YELLOW}  🌐 PLAYIT.GG TUNNEL${NC}"
-    echo -e "    ${GREEN}[5]${NC} Manage Playit.gg (install/start/stop/uninstall)"
+    echo -e "    ${GREEN}[5]${NC} Start Playit.gg tunnel"
+    echo -e "    ${GREEN}[6]${NC} Stop Playit.gg tunnel"
+    echo -e "    ${GREEN}[7]${NC} Manage Playit.gg (install/setup/uninstall)"
     echo ""
     echo -e "${YELLOW}  🔧 MAINTENANCE${NC}"
-    echo -e "    ${GREEN}[6]${NC} Update server files"
-    echo -e "    ${GREEN}[7]${NC} Switch game branch/version"
-    echo -e "    ${GREEN}[8]${NC} Clean cache & workshop files"
-    echo -e "    ${GREEN}[9]${NC} Setup new server (automated install)"
+    echo -e "    ${GREEN}[8]${NC} Update server files"
+    echo -e "    ${GREEN}[9]${NC} Switch game branch/version"
+    echo -e "    ${GREEN}[10]${NC} Clean cache & workshop files"
+    echo -e "    ${GREEN}[11]${NC} Setup new server (automated install)"
     echo ""
     echo -e "${YELLOW}  🌍 WORLD MANAGEMENT${NC}"
-    echo -e "    ${GREEN}[10]${NC} Reset world (fresh start)"
-    echo -e "    ${GREEN}[11]${NC} Manage backups (view/restore/delete)"
+    echo -e "    ${GREEN}[12]${NC} Reset world (fresh start)"
+    echo -e "    ${GREEN}[13]${NC} Manage backups (view/restore/delete)"
     echo ""
     echo -e "${YELLOW}  📋 OTHER${NC}"
-    echo -e "    ${GREEN}[12]${NC} View server logs (live)"
-    echo -e "    ${RED}[13]${NC} Uninstall / Cleanup"
-    echo -e "    ${GREEN}[14]${NC} Exit"
+    echo -e "    ${GREEN}[14]${NC} View server logs (live)"
+    echo -e "    ${RED}[15]${NC} Uninstall / Cleanup"
+    echo -e "    ${GREEN}[x]${NC} Exit"
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
@@ -124,7 +126,7 @@ show_menu() {
 
 while true; do
     show_menu
-    read -p "Choose option [1-14]: " choice
+    read -p "Choose option [1-15, x]: " choice
     echo ""
 
     case $choice in
@@ -163,45 +165,78 @@ while true; do
             ;;
         5)
             clear
-            "$SCRIPT_DIR/manage-playit.sh"
+            if ! command -v playit &> /dev/null; then
+                echo -e "${RED}✗ Playit.gg is not installed${NC}"
+                echo "  Use option [7] to install it first"
+            elif pgrep -x "playit" > /dev/null; then
+                echo -e "${YELLOW}✓ Playit.gg is already running${NC}"
+            else
+                echo -e "${GREEN}Starting Playit.gg tunnel...${NC}"
+                nohup playit start > "$SCRIPT_DIR/playit.log" 2>&1 &
+                sleep 2
+                if pgrep -x "playit" > /dev/null; then
+                    echo -e "${GREEN}✓ Playit.gg started${NC}"
+                else
+                    echo -e "${RED}✗ Failed to start${NC}"
+                fi
+            fi
+            echo ""
+            read -p "Press Enter to continue..."
             ;;
         6)
             clear
-            "$SCRIPT_DIR/update-server.sh"
+            if pgrep -x "playit" > /dev/null; then
+                echo -e "${YELLOW}Stopping Playit.gg tunnel...${NC}"
+                pkill playit
+                sleep 1
+                echo -e "${GREEN}✓ Playit.gg stopped${NC}"
+            else
+                echo -e "${YELLOW}ℹ Playit.gg is not running${NC}"
+            fi
             echo ""
             read -p "Press Enter to continue..."
             ;;
         7)
             clear
-            "$SCRIPT_DIR/list-branches.sh"
-            echo ""
-            read -p "Press Enter to continue..."
+            "$SCRIPT_DIR/manage-playit.sh"
             ;;
         8)
             clear
-            "$SCRIPT_DIR/clean-cache.sh"
+            "$SCRIPT_DIR/update-server.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         9)
             clear
-            "$SCRIPT_DIR/setup-new-server.sh"
+            "$SCRIPT_DIR/list-branches.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         10)
             clear
-            "$SCRIPT_DIR/reset-world.sh"
+            "$SCRIPT_DIR/clean-cache.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         11)
             clear
-            "$SCRIPT_DIR/manage-backups.sh"
+            "$SCRIPT_DIR/setup-new-server.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         12)
+            clear
+            "$SCRIPT_DIR/reset-world.sh"
+            echo ""
+            read -p "Press Enter to continue..."
+            ;;
+        13)
+            clear
+            "$SCRIPT_DIR/manage-backups.sh"
+            echo ""
+            read -p "Press Enter to continue..."
+            ;;
+        14)
             while true; do
                 clear
                 echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
@@ -266,18 +301,18 @@ while true; do
                 esac
             done
             ;;
-        13)
+        15)
             clear
             "$SCRIPT_DIR/uninstall.sh"
             ;;
-        14)
+        x|X)
             clear
             echo -e "${GREEN}Exiting server manager...${NC}"
             echo ""
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please choose 1-14.${NC}"
+            echo -e "${RED}Invalid option. Please choose 1-15 or x to exit.${NC}"
             sleep 2
             ;;
     esac

@@ -30,7 +30,7 @@ fi
 echo ""
 if pgrep -x "playit" > /dev/null; then
     echo "ℹ Playit.gg tunnel is still running"
-    echo "  Use option [6] → [2] to stop the tunnel if needed"
+    echo "  Use main menu option [6] to stop the tunnel if needed"
 else
     echo "ℹ Playit.gg tunnel is not running"
 fi

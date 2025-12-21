@@ -50,7 +50,7 @@ STEAMCMD="$STEAMCMD_DIR/steamcmd.sh"
 
 show_header
 echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                         ${YELLOW}SWITCH GAME BRANCH${CYAN}                                   ║${NC}"
+echo -e "${CYAN}║                         ${YELLOW}SWITCH GAME BRANCH${CYAN}                                    ║${NC}"
 echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 

@@ -49,7 +49,7 @@ EOF
 install_playit() {
     show_header
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                            ${YELLOW}INSTALL PLAYIT.GG${CYAN}                                  ║${NC}"
+    echo -e "${CYAN}║                            ${YELLOW}INSTALL PLAYIT.GG${CYAN}                                   ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 
@@ -94,7 +94,7 @@ install_playit() {
 uninstall_playit() {
     show_header
     echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                           ${YELLOW}UNINSTALL PLAYIT.GG${CYAN}                                ║${NC}"
+    echo -e "${CYAN}║                           ${YELLOW}UNINSTALL PLAYIT.GG${CYAN}                                  ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 
@@ -171,18 +171,18 @@ show_menu() {
     fi
     echo ""
     echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
-    echo ""
-    echo -e "  ${GREEN}[1]${NC} Install Playit.gg"
-    echo -e "  ${GREEN}[2]${NC} Start Playit.gg tunnel"
-    echo -e "  ${GREEN}[3]${NC} Stop Playit.gg tunnel"
-    echo -e "  ${GREEN}[4]${NC} Restart Playit.gg tunnel"
-    echo -e "  ${GREEN}[5]${NC} View active tunnels"
-    echo -e "  ${GREEN}[6]${NC} Get claim URL / Manage account"
-    echo -e "  ${GREEN}[7]${NC} Setup new tunnels"
-    echo -e "  ${GREEN}[8]${NC} View Playit.gg logs"
-    echo -e "  ${RED}[9]${NC} Uninstall Playit.gg"
-    echo -e "  ${GREEN}[0]${NC} Back to main menu"
-    echo ""
+    echo -e "${CYAN}║                                                                                ║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[1]${NC} Install Playit.gg                                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[2]${NC} Start Playit.gg tunnel                                ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[3]${NC} Stop Playit.gg tunnel                                 ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[4]${NC} Restart Playit.gg tunnel                              ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[5]${NC} View active tunnels                                   ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[6]${NC} Get claim URL / Manage account                        ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[7]${NC} Setup new tunnels                                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[8]${NC} View Playit.gg logs                                   ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${RED}[9]${NC} Uninstall Playit.gg                                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║  ${GREEN}[0]${NC} Back to main menu                                     ${CYAN}║${NC}"
+    echo -e "${CYAN}║                                                                                ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }

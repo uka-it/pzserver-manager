@@ -47,7 +47,7 @@ EOF
 
 show_header
 echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                            ${YELLOW}CACHE CLEANER${CYAN}                                      ║${NC}"
+echo -e "${CYAN}║                            ${YELLOW}CACHE CLEANER${CYAN}                                       ║${NC}"
 echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "This will delete cache and downloaded files."

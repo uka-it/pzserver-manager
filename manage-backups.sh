@@ -51,7 +51,7 @@ EOF
 
 show_header
 echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                             ${YELLOW}BACKUP MANAGER${CYAN}                                    ║${NC}"
+echo -e "${CYAN}║                             ${YELLOW}BACKUP MANAGER${CYAN}                                     ║${NC}"
 echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 

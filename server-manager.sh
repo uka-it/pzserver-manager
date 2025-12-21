@@ -18,6 +18,13 @@ BLUE=$'\033[0;34m'
 CYAN=$'\033[0;36m'
 NC=$'\033[0m' # No Color
 
+# Cache if python3 is available for display width calculations
+if command -v python3 >/dev/null 2>&1; then
+    HAS_PYTHON3=1
+else
+    HAS_PYTHON3=0
+fi
+
 ###############################################################################
 # Box / Frame helpers (no more counting spaces)
 ###############################################################################
@@ -39,6 +46,36 @@ _strip_ansi() {
     printf '%s' "$1" | sed -r $'s/\x1B\\[[0-9;]*[[:alpha:]]//g'
 }
 
+_display_width() {
+    local plain="$(_strip_ansi "$1")"
+
+    if ((HAS_PYTHON3)); then
+        python3 - "$plain" <<'PY'
+import sys
+import unicodedata
+
+text = sys.argv[1]
+width = 0
+for ch in text:
+    if unicodedata.combining(ch):
+        continue
+    if unicodedata.east_asian_width(ch) in ("F", "W", "A"):
+        width += 2
+    else:
+        width += 1
+print(width, end="")
+PY
+    else
+        local fallback_plain="$plain"
+        fallback_plain="${fallback_plain//⚙/XX}"
+        fallback_plain="${fallback_plain//🌐/XX}"
+        fallback_plain="${fallback_plain//🔧/XX}"
+        fallback_plain="${fallback_plain//🌍/XX}"
+        fallback_plain="${fallback_plain//📋/XX}"
+        printf '%s' "$fallback_plain" | wc -m | awk '{print $1}'
+    fi
+}
+
 box_top() {
     printf "${CYAN}╔%s╗${NC}\n" "$(_repeat_char $((BOX_INNER + 2)) "═")"
 }
@@ -53,9 +90,8 @@ box_bottom() {
 
 box_line() {
     local s="$1"
-    local plain len pad
-    plain="$(_strip_ansi "$s")"
-    len=${#plain}
+    local len pad
+    len=$(_display_width "$s")
     pad=$((BOX_INNER - len))
     ((pad < 0)) && pad=0
 
@@ -68,9 +104,8 @@ box_empty() {
 
 box_title_center() {
     local s="$1"
-    local plain len left right
-    plain="$(_strip_ansi "$s")"
-    len=${#plain}
+    local len left right
+    len=$(_display_width "$s")
 
     if ((len >= BOX_INNER)); then
         box_line "$s"
@@ -423,4 +458,3 @@ while true; do
             ;;
     esac
 done
-

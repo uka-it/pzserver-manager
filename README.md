@@ -45,7 +45,8 @@ Everything else in the menu is optional maintenance.
 - **Real-time Status** - Live server/tunnel status display
 - **Interactive Prompts** - User-friendly navigation
 
-<img width="1123" height="1215" alt="image" src="https://github.com/user-attachments/assets/a5230330-5809-42f5-b441-43b67c23ec7a" />
+<img width="1109" height="1269" alt="image" src="https://github.com/user-attachments/assets/7d9e301e-979b-4d07-bfe5-0183661aa240" />
+
 
 ### 🚀 Automated Setup
 - **One-Command Installation** - Complete server setup from scratch
@@ -472,6 +473,7 @@ See [LICENSE](LICENSE) file for full terms.
 ---
 
 **Made with 💀 for the Project Zomboid community**
+
 
 
 

@@ -15,6 +15,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -46,10 +48,7 @@ EOF
 }
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                            ${YELLOW}CACHE CLEANER${CYAN}                                       ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}CACHE CLEANER${NC}"
 echo "This will delete cache and downloaded files."
 echo "The server will re-download fresh from Steam on next start."
 echo ""
@@ -127,9 +126,9 @@ case $option in
 esac
 
 echo ""
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}✓ Cache Cleaning Complete!${NC}"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${GREEN}✓ Cache Cleaning Complete!${NC}"
+box_bottom
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo -e "  ${BLUE}1. Update server files from Steam:${NC}"

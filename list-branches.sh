@@ -16,6 +16,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -49,10 +51,7 @@ EOF
 STEAMCMD="$STEAMCMD_DIR/steamcmd.sh"
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                         ${YELLOW}SWITCH GAME BRANCH${CYAN}                                    ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}SWITCH GAME BRANCH${NC}"
 
 # Check if server is running
 if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then

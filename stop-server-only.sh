@@ -15,6 +15,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -46,10 +48,7 @@ EOF
 }
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                           ${YELLOW}STOPPING SERVER${CYAN}                                    ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}STOPPING SERVER${NC}"
 
 # Stop Project Zomboid server
 if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
@@ -76,6 +75,6 @@ else
 fi
 
 echo ""
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}Server stopped (Playit.gg unchanged)${NC}"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${GREEN}Server stopped (Playit.gg unchanged)${NC}"
+box_bottom

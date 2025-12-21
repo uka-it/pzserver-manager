@@ -15,6 +15,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -46,10 +48,7 @@ EOF
 }
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                             ${YELLOW}SERVER STATUS${CYAN}                                     ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}SERVER STATUS${NC}"
 
 # Check Project Zomboid server
 if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
@@ -85,31 +84,30 @@ ss -ulpn 2>/dev/null | grep -E "($DEFAULT_PORT|$UDP_PORT)" | while read line; do
 done
 
 echo ""
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}Connection Information:${NC}"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${YELLOW}Connection Information:${NC}"
+box_mid
 
 # Show configured connection info
 if [ -n "$PLAYIT_TUNNEL" ]; then
-    echo "  Playit.gg: $PLAYIT_TUNNEL"
+    box_line "  Playit.gg: $PLAYIT_TUNNEL"
 elif pgrep -x "playit" > /dev/null && command -v playit &> /dev/null; then
     # Try to get tunnel address from playit
     TUNNEL=$(playit tunnels list 2>/dev/null | grep "=>" | head -1 | awk '{print $1}')
     if [ -n "$TUNNEL" ]; then
-        echo "  Playit.gg: $TUNNEL"
+        box_line "  Playit.gg: $TUNNEL"
     fi
 fi
 
 if [ -n "$PUBLIC_DOMAIN" ]; then
-    echo "  Domain:    $PUBLIC_DOMAIN:$DEFAULT_PORT"
+    box_line "  Domain:    $PUBLIC_DOMAIN:$DEFAULT_PORT"
 fi
 
 if [ -n "$PUBLIC_IPV6" ]; then
-    echo "  IPv6:      [$PUBLIC_IPV6]:$DEFAULT_PORT"
+    box_line "  IPv6:      [$PUBLIC_IPV6]:$DEFAULT_PORT"
 fi
 
 # Always show local
 LOCAL_IP=$(hostname -I | awk '{print $1}')
-echo "  Local:     ${LOCAL_IP:-127.0.0.1}:$DEFAULT_PORT"
-
-echo "=================================================="
+box_line "  Local:     ${LOCAL_IP:-127.0.0.1}:$DEFAULT_PORT"
+box_bottom

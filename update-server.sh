@@ -16,6 +16,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -47,10 +49,7 @@ EOF
 }
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                           ${YELLOW}UPDATE SERVER${CYAN}                                      ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}UPDATE SERVER${NC}"
 
 # Detect current branch from Steam manifest
 MANIFEST="$INSTALL_DIR/steamapps/appmanifest_380870.acf"
@@ -98,15 +97,16 @@ $STEAMCMD_DIR/steamcmd.sh \
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "=================================================="
-    echo "✓ Update complete!"
-    echo "=================================================="
+    box_top
+    box_line "${GREEN}✓ Update complete!${NC}"
+    box_bottom
     echo ""
     echo "Branch: $BRANCH_DISPLAY"
     echo ""
-    echo "Restart the server to use the updated files:"
-    echo "  ./stop-all.sh && ./start-all.sh"
-    echo "=================================================="
+    box_top
+    box_line "${YELLOW}Restart the server to use the updated files:${NC}"
+    box_line "  ./stop-all.sh && ./start-all.sh"
+    box_bottom
 else
     echo ""
     echo "✗ Update failed!"

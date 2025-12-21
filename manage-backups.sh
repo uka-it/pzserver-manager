@@ -16,6 +16,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 BACKUP_DIR="$INSTALL_DIR/backups"
 SERVER_NAME="pzserver"
 
@@ -50,10 +52,7 @@ EOF
 }
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                             ${YELLOW}BACKUP MANAGER${CYAN}                                     ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}BACKUP MANAGER${NC}"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
@@ -144,12 +143,12 @@ SELECTED_SIZE="${BACKUP_SIZES[$SELECTED_INDEX]}"
 SELECTED_DATE="${BACKUP_DATES[$SELECTED_INDEX]}"
 
 echo ""
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}Selected Backup:${NC}"
-echo -e "  ${BLUE}Date:${NC} $SELECTED_DATE"
-echo -e "  ${BLUE}Size:${NC} $SELECTED_SIZE"
-echo -e "  ${BLUE}File:${NC} $SELECTED_BACKUP"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${YELLOW}Selected Backup:${NC}"
+box_line "  ${BLUE}Date:${NC} $SELECTED_DATE"
+box_line "  ${BLUE}Size:${NC} $SELECTED_SIZE"
+box_line "  ${BLUE}File:${NC} $SELECTED_BACKUP"
+box_bottom
 echo ""
 echo -e "${YELLOW}What would you like to do?${NC}"
 echo ""
@@ -164,10 +163,7 @@ case $action in
     1)
         # Restore backup
         echo ""
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}RESTORE BACKUP${NC}"
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo ""
+        box_header "${YELLOW}RESTORE BACKUP${NC}"
         echo -e "${RED}⚠ WARNING: This will REPLACE your current world!${NC}"
         echo ""
         echo "Current world will be deleted and replaced with:"
@@ -224,18 +220,19 @@ case $action in
         if [ $? -eq 0 ]; then
             echo "✓ Backup restored successfully!"
             echo ""
-            echo "=================================================="
-            echo "✓ World Restored from $SELECTED_DATE"
-            echo "=================================================="
+            box_top
+            box_line "${GREEN}✓ World Restored from $SELECTED_DATE${NC}"
+            box_bottom
             echo ""
             echo "Your world has been restored to the backed up state."
             echo ""
             echo "To start the server:"
             echo "  ./start-all.sh"
             echo ""
-            echo "A safety backup of your previous world was saved:"
-            echo "  $SAFETY_BACKUP"
-            echo "=================================================="
+            box_top
+            box_line "${BLUE}Safety backup saved:${NC}"
+            box_line "  $SAFETY_BACKUP"
+            box_bottom
         else
             echo ""
             echo "✗ Restore failed!"
@@ -249,10 +246,7 @@ case $action in
     2)
         # Delete backup
         echo ""
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}DELETE BACKUP${NC}"
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo ""
+        box_header "${YELLOW}DELETE BACKUP${NC}"
         echo -e "${RED}⚠ WARNING: This will permanently delete the backup!${NC}"
         echo ""
         echo "  Date: $SELECTED_DATE"
@@ -281,10 +275,7 @@ case $action in
     3)
         # View contents
         echo ""
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}BACKUP CONTENTS${NC}"
-        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-        echo ""
+        box_header "${YELLOW}BACKUP CONTENTS${NC}"
         tar -tzf "$SELECTED_BACKUP" 2>/dev/null | head -50
         echo ""
         echo "... (showing first 50 entries)"

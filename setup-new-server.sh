@@ -16,6 +16,7 @@ NC='\033[0m'
 # Load configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
+source "$SCRIPT_DIR/lib/ui-box.sh"
 
 show_header() {
     clear
@@ -44,10 +45,7 @@ EOF
 EOF
     echo -e "${NC}"
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${CYAN}║                    ${YELLOW}AUTOMATED SERVER SETUP & INSTALLATION${CYAN}                     ║${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${YELLOW}AUTOMATED SERVER SETUP & INSTALLATION${NC}"
 }
 
 check_existing() {
@@ -69,10 +67,7 @@ check_existing() {
 
 install_dependencies() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[1/4] Installing System Dependencies${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${GREEN}[1/4] Installing System Dependencies${NC}"
 
     # Check if running as root
     if [ "$EUID" -eq 0 ]; then
@@ -90,10 +85,7 @@ install_dependencies() {
 
 install_steamcmd() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[2/4] Installing SteamCMD${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${GREEN}[2/4] Installing SteamCMD${NC}"
 
     mkdir -p "$STEAMCMD_DIR"
     cd "$STEAMCMD_DIR"
@@ -109,10 +101,7 @@ install_steamcmd() {
 
 configure_server() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[3/4] Configuring Server Settings${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${GREEN}[3/4] Configuring Server Settings${NC}"
 
     # Get server configuration from user
     read -p "Enter server name (press Enter for 'My PZ Server'): " SERVER_NAME
@@ -297,10 +286,7 @@ EOF
 
 download_server() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[4/4] Downloading Project Zomboid Server${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${GREEN}[4/4] Downloading Project Zomboid Server${NC}"
     echo "Branch: $BRANCH_NAME"
     echo "This may take several minutes depending on your connection..."
     echo ""
@@ -370,10 +356,7 @@ show_completion() {
     clear
     show_header
 
-    echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}║                         ✓ INSTALLATION COMPLETE!                              ║${NC}"
-    echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${GREEN}✓ INSTALLATION COMPLETE!${NC}"
     echo -e "${CYAN}Server Details:${NC}"
     echo "  Name: $SERVER_NAME"
     echo "  Branch: $BRANCH_NAME"
@@ -395,7 +378,9 @@ show_completion() {
     echo "   Password: $ADMIN_PASS"
     echo "   (Saved in: .env file, will be removed after first start)"
     echo ""
-    echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    box_top
+    box_line "${GREEN}You're ready to run the server!${NC}"
+    box_bottom
     echo ""
     read -p "Press Enter to exit..."
 }

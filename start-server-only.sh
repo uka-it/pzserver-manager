@@ -15,6 +15,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -48,10 +50,7 @@ EOF
 cd "${SCRIPT_DIR}"
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                           ${YELLOW}STARTING SERVER${CYAN}                                    ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}STARTING SERVER${NC}"
 
 # Check if PZ server is already running
 if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
@@ -77,13 +76,13 @@ else
     BRANCH_DISPLAY="Unknown"
 fi
 
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}Server Configuration:${NC}"
-echo -e "  ${BLUE}Name:${NC}   ${SERVER_NAME:-My PZ Server}"
-echo -e "  ${BLUE}Branch:${NC} $BRANCH_DISPLAY"
-echo -e "  ${BLUE}Memory:${NC} 8GB"
-echo -e "  ${BLUE}Mode:${NC}   Direct Connection (No Playit.gg)"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${YELLOW}Server Configuration:${NC}"
+box_line "  ${BLUE}Name:${NC}   ${SERVER_NAME:-My PZ Server}"
+box_line "  ${BLUE}Branch:${NC} $BRANCH_DISPLAY"
+box_line "  ${BLUE}Memory:${NC} 8GB"
+box_line "  ${BLUE}Mode:${NC}   Direct Connection (No Playit.gg)"
+box_bottom
 echo ""
 echo -e "${YELLOW}Players can connect via:${NC}"
 if [ -n "$PUBLIC_DOMAIN" ]; then
@@ -95,9 +94,9 @@ fi
 LOCAL_IP=$(hostname -I | awk '{print $1}')
 echo "  Local: ${LOCAL_IP:-127.0.0.1}:$DEFAULT_PORT"
 echo ""
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}Server is starting in background...${NC}"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${GREEN}Server is starting in background...${NC}"
+box_bottom
 echo ""
 
 # Start the PZ server in background

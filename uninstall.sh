@@ -15,6 +15,8 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 show_header() {
     clear
     # CRT Phosphor Green
@@ -43,10 +45,7 @@ EOF
 EOF
     echo -e "${NC}"
     echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                           ${YELLOW}UNINSTALL / CLEANUP${CYAN}                                ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    box_header "${YELLOW}UNINSTALL / CLEANUP${NC}"
 }
 
 calculate_sizes() {
@@ -90,7 +89,9 @@ show_menu() {
     echo ""
     echo -e "  ${GREEN}[5]${NC} Cancel"
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    box_top
+    box_line "${YELLOW}Select an option and follow the confirmation prompts.${NC}"
+    box_bottom
     echo ""
 }
 
@@ -116,10 +117,7 @@ stop_services() {
 
 uninstall_steamcmd() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}UNINSTALL STEAMCMD ONLY${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${YELLOW}UNINSTALL STEAMCMD ONLY${NC}"
     echo "This will remove:"
     echo "  - SteamCMD ($STEAMCMD_DIR)"
     echo ""
@@ -147,10 +145,7 @@ uninstall_steamcmd() {
 
 uninstall_pzserver_only() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${RED}UNINSTALL PROJECT ZOMBOID SERVER${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${RED}UNINSTALL PROJECT ZOMBOID SERVER${NC}"
     echo "This will remove:"
     echo "  - Project Zomboid server files"
     echo "  - All installed mods and workshop content"
@@ -181,10 +176,7 @@ uninstall_pzserver_only() {
 
 uninstall_world_data() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${RED}UNINSTALL WORLD DATA${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${RED}UNINSTALL WORLD DATA${NC}"
     echo -e "${RED}⚠ WARNING: This will DELETE all your world progress!${NC}"
     echo ""
     echo "This will remove:"
@@ -218,10 +210,7 @@ uninstall_world_data() {
 
 uninstall_everything() {
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${RED}COMPLETE UNINSTALL${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
+    box_header "${RED}COMPLETE UNINSTALL${NC}"
     echo -e "${RED}⚠ FINAL WARNING: This will remove EVERYTHING!${NC}"
     echo ""
     echo "This will remove:"
@@ -269,9 +258,9 @@ uninstall_everything() {
     rm -f "$SCRIPT_DIR/.admin_created"
 
     echo ""
-    echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}✓ Complete Uninstall Finished${NC}"
-    echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    box_top
+    box_line "${GREEN}✓ Complete Uninstall Finished${NC}"
+    box_bottom
     echo ""
     echo "All server components removed"
     echo ""

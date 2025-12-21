@@ -15,6 +15,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+source "$SCRIPT_DIR/lib/ui-box.sh"
+
 BACKUP_DIR="$INSTALL_DIR/backups"
 SERVER_NAME="pzserver"
 SAVE_DIR="$ZOMBOID_DIR/Saves/Multiplayer/$SERVER_NAME"
@@ -51,10 +53,7 @@ EOF
 }
 
 show_header
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                            ${YELLOW}RESET WORLD TOOL${CYAN}                                   ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
-echo ""
+box_header "${YELLOW}RESET WORLD TOOL${NC}"
 echo -e "${RED}This will DELETE all world data and start fresh!${NC}"
 echo ""
 
@@ -130,9 +129,9 @@ if [ -f "$DB_FILE" ]; then
 fi
 
 echo ""
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}✓ World Reset Complete!${NC}"
-echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+box_top
+box_line "${GREEN}✓ World Reset Complete!${NC}"
+box_bottom
 echo ""
 echo "The server will create a fresh new world on next start."
 echo ""

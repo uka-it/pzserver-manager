@@ -8,13 +8,13 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# Colors (REAL ESC bytes so printf renders colors correctly)
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[1;33m'
+BLUE=$'\033[0;34m'
+CYAN=$'\033[0;36m'
+NC=$'\033[0m'
 
 ###############################################################################
 # Box / Frame helpers (no more counting spaces)
@@ -98,7 +98,7 @@ box_header() {
 show_header() {
     clear
     # CRT Phosphor Green
-    local CRT_GREEN='\033[1;92m'
+    local CRT_GREEN=$'\033[1;92m'
 
     echo -e "${RED}"
     cat << 'EOF'

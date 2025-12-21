@@ -39,22 +39,22 @@ EOF
 
 calculate_sizes() {
     # Calculate component sizes
-    if [ -d "$INSTALL_DIR" ]; then
-        SERVER_SIZE=$(du -sh "$INSTALL_DIR" 2>/dev/null | awk '{print $1}')
+    if [ -d "$STEAMCMD_DIR" ]; then
+        STEAMCMD_SIZE=$(du -sh "$STEAMCMD_DIR" 2>/dev/null | awk '{print $1}')
     else
-        SERVER_SIZE="0"
+        STEAMCMD_SIZE="0"
+    fi
+
+    if [ -d "$INSTALL_DIR" ]; then
+        PZSERVER_SIZE=$(du -sh "$INSTALL_DIR" 2>/dev/null | awk '{print $1}')
+    else
+        PZSERVER_SIZE="0"
     fi
 
     if [ -d "$ZOMBOID_DIR" ]; then
         DATA_SIZE=$(du -sh "$ZOMBOID_DIR" 2>/dev/null | awk '{print $1}')
     else
         DATA_SIZE="0"
-    fi
-
-    if command -v playit &> /dev/null; then
-        PLAYIT_SIZE="~10M (installed)"
-    else
-        PLAYIT_SIZE="Not installed"
     fi
 }
 
@@ -63,16 +63,17 @@ show_menu() {
 
     echo -e "${YELLOW}What would you like to uninstall?${NC}"
     echo ""
-    echo -e "  ${GREEN}[1]${NC} Server files only (SteamCMD + Project Zomboid) [$SERVER_SIZE]"
-    echo "      Keeps: World data, saves, player database"
+    echo -e "  ${GREEN}[1]${NC} SteamCMD only [$STEAMCMD_SIZE]"
+    echo "      Keeps: Project Zomboid server, world data"
+    echo "      (Can be reinstalled to update server later)"
     echo ""
-    echo -e "  ${GREEN}[2]${NC} World data only (saves, database, configs) [$DATA_SIZE]"
-    echo "      Keeps: Server files, you can create a new world"
+    echo -e "  ${GREEN}[2]${NC} Project Zomboid server only [$PZSERVER_SIZE]"
+    echo "      Keeps: SteamCMD, world data, saves, player database"
     echo ""
-    echo -e "  ${GREEN}[3]${NC} Playit.gg only [$PLAYIT_SIZE]"
-    echo "      Removes the tunneling service"
+    echo -e "  ${GREEN}[3]${NC} World data only [$DATA_SIZE]"
+    echo "      Keeps: Server files, can create a new world"
     echo ""
-    echo -e "  ${RED}[4]${NC} Everything (server + world data + Playit.gg)"
+    echo -e "  ${RED}[4]${NC} Everything (SteamCMD + server + world data)"
     echo "      Complete removal, fresh start"
     echo ""
     echo -e "  ${GREEN}[5]${NC} Cancel"
@@ -101,21 +102,51 @@ stop_services() {
     echo ""
 }
 
-uninstall_server() {
+uninstall_steamcmd() {
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${RED}UNINSTALL SERVER FILES${NC}"
+    echo -e "${YELLOW}UNINSTALL STEAMCMD ONLY${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
     echo "This will remove:"
     echo "  - SteamCMD ($STEAMCMD_DIR)"
-    echo "  - Project Zomboid server files ($INSTALL_DIR)"
+    echo ""
+    echo "This will NOT remove:"
+    echo "  - Project Zomboid server files"
+    echo "  - World saves and configurations"
+    echo ""
+    echo "Note: You can reinstall SteamCMD later to update the server."
+    echo ""
+    read -p "Type 'DELETE' to confirm: " confirm
+
+    if [ "$confirm" != "DELETE" ]; then
+        echo -e "${YELLOW}Cancelled.${NC}"
+        return
+    fi
+
+    echo "Removing SteamCMD..."
+    if [ -d "$STEAMCMD_DIR" ]; then
+        rm -rf "$STEAMCMD_DIR"
+        echo -e "${GREEN}✓ SteamCMD removed ($STEAMCMD_SIZE freed)${NC}"
+    else
+        echo -e "${YELLOW}ℹ SteamCMD not found${NC}"
+    fi
+}
+
+uninstall_pzserver_only() {
+    echo ""
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${RED}UNINSTALL PROJECT ZOMBOID SERVER${NC}"
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo "This will remove:"
+    echo "  - Project Zomboid server files"
     echo "  - All installed mods and workshop content"
     echo ""
     echo "This will NOT remove:"
+    echo "  - SteamCMD (can reinstall server later)"
     echo "  - World saves ($ZOMBOID_DIR)"
-    echo "  - Player database"
-    echo "  - Server configurations"
+    echo "  - Player database and configurations"
     echo ""
     read -p "Type 'DELETE' to confirm: " confirm
 
@@ -126,10 +157,11 @@ uninstall_server() {
 
     stop_services
 
-    echo "Removing server files..."
+    echo "Removing Project Zomboid server..."
+    # Remove everything in INSTALL_DIR except steamcmd folder
     if [ -d "$INSTALL_DIR" ]; then
-        rm -rf "$INSTALL_DIR"
-        echo -e "${GREEN}✓ Server files removed ($SERVER_SIZE freed)${NC}"
+        find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 ! -name 'steamcmd' -exec rm -rf {} +
+        echo -e "${GREEN}✓ Project Zomboid server removed${NC}"
     else
         echo -e "${YELLOW}ℹ No server files found${NC}"
     fi
@@ -172,44 +204,6 @@ uninstall_world_data() {
     fi
 }
 
-uninstall_playit() {
-    echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}UNINSTALL PLAYIT.GG${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
-
-    if ! command -v playit &> /dev/null; then
-        echo -e "${YELLOW}ℹ Playit.gg is not installed${NC}"
-        sleep 2
-        return
-    fi
-
-    echo "This will remove the Playit.gg tunneling service."
-    echo "You will need to use direct connection or another tunnel solution."
-    echo ""
-    read -p "Remove Playit.gg? (yes/no): " confirm
-
-    if [ "$confirm" != "yes" ]; then
-        echo -e "${YELLOW}Cancelled.${NC}"
-        return
-    fi
-
-    # Stop playit if running
-    if pgrep -x "playit" > /dev/null; then
-        echo "Stopping Playit.gg..."
-        pkill playit
-        sleep 1
-    fi
-
-    echo "Uninstalling Playit.gg..."
-    sudo apt remove -y playit 2>/dev/null
-    sudo rm -f /etc/apt/sources.list.d/playit-cloud.list
-    sudo rm -f /etc/apt/trusted.gpg.d/playit.gpg
-
-    echo -e "${GREEN}✓ Playit.gg removed${NC}"
-}
-
 uninstall_everything() {
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
@@ -219,9 +213,9 @@ uninstall_everything() {
     echo -e "${RED}⚠ FINAL WARNING: This will remove EVERYTHING!${NC}"
     echo ""
     echo "This will remove:"
-    echo "  - Server files ($SERVER_SIZE)"
+    echo "  - SteamCMD ($STEAMCMD_SIZE)"
+    echo "  - Project Zomboid server ($PZSERVER_SIZE)"
     echo "  - World data ($DATA_SIZE)"
-    echo "  - Playit.gg"
     echo "  - All configurations"
     echo ""
     echo "The only thing remaining will be this management script folder."
@@ -239,7 +233,7 @@ uninstall_everything() {
     echo "Removing all components..."
     echo ""
 
-    # Remove server files
+    # Remove server files (includes SteamCMD and PZ server)
     if [ -d "$INSTALL_DIR" ]; then
         echo "Removing server files..."
         rm -rf "$INSTALL_DIR"
@@ -253,21 +247,21 @@ uninstall_everything() {
         echo -e "${GREEN}✓ World data removed${NC}"
     fi
 
-    # Remove Playit.gg
-    if command -v playit &> /dev/null; then
-        echo "Removing Playit.gg..."
-        sudo apt remove -y playit 2>/dev/null
-        sudo rm -f /etc/apt/sources.list.d/playit-cloud.list
-        sudo rm -f /etc/apt/trusted.gpg.d/playit.gpg
-        echo -e "${GREEN}✓ Playit.gg removed${NC}"
+    # Remove .env file
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        rm -f "$SCRIPT_DIR/.env"
+        echo -e "${GREEN}✓ Configuration removed${NC}"
     fi
+
+    # Remove flag files
+    rm -f "$SCRIPT_DIR/.admin_created"
 
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}✓ Complete Uninstall Finished${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo "Total space freed: Combined $SERVER_SIZE + $DATA_SIZE"
+    echo "All server components removed"
     echo ""
     echo "This management script folder is still here at:"
     echo "  $SCRIPT_DIR"
@@ -285,13 +279,13 @@ echo ""
 
 case $choice in
     1)
-        uninstall_server
+        uninstall_steamcmd
         ;;
     2)
-        uninstall_world_data
+        uninstall_pzserver_only
         ;;
     3)
-        uninstall_playit
+        uninstall_world_data
         ;;
     4)
         uninstall_everything

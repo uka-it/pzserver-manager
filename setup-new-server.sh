@@ -70,7 +70,7 @@ check_existing() {
 install_dependencies() {
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[1/5] Installing System Dependencies${NC}"
+    echo -e "${GREEN}[1/4] Installing System Dependencies${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
 
@@ -91,7 +91,7 @@ install_dependencies() {
 install_steamcmd() {
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[2/5] Installing SteamCMD${NC}"
+    echo -e "${GREEN}[2/4] Installing SteamCMD${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
 
@@ -110,7 +110,7 @@ install_steamcmd() {
 configure_server() {
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[3/5] Configuring Server Settings${NC}"
+    echo -e "${GREEN}[3/4] Configuring Server Settings${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
 
@@ -298,7 +298,7 @@ EOF
 download_server() {
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[4/5] Downloading Project Zomboid Server${NC}"
+    echo -e "${GREEN}[4/4] Downloading Project Zomboid Server${NC}"
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
     echo "Branch: $BRANCH_NAME"
@@ -318,43 +318,6 @@ download_server() {
         echo ""
         echo -e "${RED}✗ Failed to download server files${NC}"
         exit 1
-    fi
-}
-
-setup_playit() {
-    echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}[5/5] Setting up Playit.gg Tunnel${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
-    echo ""
-
-    read -p "Do you want to install Playit.gg for tunneling? (yes/no): " install_playit
-
-    if [ "$install_playit" = "yes" ]; then
-        if ! command -v playit &> /dev/null; then
-            echo "Installing Playit.gg..."
-            curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
-            echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
-            sudo apt update
-            sudo apt install -y playit
-            echo -e "${GREEN}✓ Playit.gg installed${NC}"
-        else
-            echo -e "${YELLOW}Playit.gg already installed${NC}"
-        fi
-
-        echo ""
-        echo -e "${YELLOW}You'll need to set up Playit.gg tunnels:${NC}"
-        echo ""
-        echo "1. Run: playit setup"
-        echo "2. Create tunnels for these ports:"
-        echo "   - Port $DEFAULT_PORT (UDP) - Main server port"
-        echo "   - Port $UDP_PORT (UDP) - Secondary port"
-        echo "   - Port $STEAM_PORT1 (UDP) - Steam port 1"
-        echo "   - Port $STEAM_PORT2 (UDP) - Steam port 2"
-        echo ""
-        read -p "Press Enter to continue..."
-    else
-        echo -e "${YELLOW}Skipping Playit.gg installation${NC}"
     fi
 }
 
@@ -422,15 +385,15 @@ show_completion() {
     echo -e "${YELLOW}1. Start the server:${NC}"
     echo "   cd $INSTALL_DIR"
     echo "   ./server-manager.sh"
-    echo "   Choose option [1] to start"
+    echo "   Choose option [1] to start server"
     echo ""
-    echo -e "${YELLOW}2. Configure Playit.gg tunnels (if installed):${NC}"
-    echo "   playit setup"
-    echo "   Create UDP tunnels for ports: $DEFAULT_PORT, $UDP_PORT, $STEAM_PORT1, $STEAM_PORT2"
+    echo -e "${YELLOW}2. (Optional) Setup Playit.gg tunneling:${NC}"
+    echo "   In server manager, choose option [5]"
+    echo "   Install and configure tunnels for ports: $DEFAULT_PORT, $UDP_PORT, $STEAM_PORT1, $STEAM_PORT2"
     echo ""
     echo -e "${YELLOW}3. Admin Password:${NC}"
     echo "   Password: $ADMIN_PASS"
-    echo "   (Saved in: .env file)"
+    echo "   (Saved in: .env file, will be removed after first start)"
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
@@ -447,7 +410,6 @@ main() {
     download_server
     create_server_config
     create_management_scripts
-    setup_playit
     show_completion
 }
 

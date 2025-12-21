@@ -24,53 +24,153 @@ show_header() {
     echo ""
 }
 
-check_playit_installed() {
-    if ! command -v playit &> /dev/null; then
-        echo -e "${RED}✗ Playit.gg is not installed${NC}"
+install_playit() {
+    clear
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}║                        ${YELLOW}INSTALL PLAYIT.GG${CYAN}                                      ║${NC}"
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo ""
+
+    if command -v playit &> /dev/null; then
+        echo -e "${YELLOW}✓ Playit.gg is already installed${NC}"
         echo ""
-        echo "To install Playit.gg:"
-        echo "  curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null"
-        echo "  echo \"deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./ \" | sudo tee /etc/apt/sources.list.d/playit-cloud.list"
-        echo "  sudo apt update"
-        echo "  sudo apt install -y playit"
-        echo ""
-        read -p "Press Enter to exit..."
-        exit 1
+        read -p "Press Enter to continue..."
+        return
     fi
+
+    echo -e "${YELLOW}Installing Playit.gg...${NC}"
+    echo ""
+
+    # Add Playit.gg repository
+    echo "Adding Playit.gg repository..."
+    curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+    echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
+
+    # Update and install
+    echo "Updating package list..."
+    sudo apt update
+
+    echo "Installing playit..."
+    sudo apt install -y playit
+
+    if command -v playit &> /dev/null; then
+        echo ""
+        echo -e "${GREEN}✓ Playit.gg installed successfully${NC}"
+        echo ""
+        echo "Next steps:"
+        echo "  1. Choose option [6] to setup tunnels"
+        echo "  2. Create UDP tunnels for ports: $DEFAULT_PORT, $UDP_PORT, $STEAM_PORT1, $STEAM_PORT2"
+    else
+        echo ""
+        echo -e "${RED}✗ Installation failed${NC}"
+    fi
+
+    echo ""
+    read -p "Press Enter to continue..."
+}
+
+uninstall_playit() {
+    clear
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}║                       ${YELLOW}UNINSTALL PLAYIT.GG${CYAN}                                    ║${NC}"
+    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo ""
+
+    if ! command -v playit &> /dev/null; then
+        echo -e "${YELLOW}Playit.gg is not installed${NC}"
+        echo ""
+        read -p "Press Enter to continue..."
+        return
+    fi
+
+    # Stop if running
+    if pgrep -x "playit" > /dev/null; then
+        echo "Stopping Playit.gg..."
+        pkill playit
+        sleep 1
+    fi
+
+    echo -e "${RED}This will remove Playit.gg and all its configuration.${NC}"
+    echo ""
+    read -p "Are you sure? (yes/no): " confirm
+
+    if [ "$confirm" != "yes" ]; then
+        echo "Cancelled."
+        sleep 1
+        return
+    fi
+
+    echo ""
+    echo "Removing Playit.gg..."
+    sudo apt remove -y playit
+
+    echo "Removing repository..."
+    sudo rm -f /etc/apt/sources.list.d/playit-cloud.list
+    sudo rm -f /etc/apt/trusted.gpg.d/playit.gpg
+
+    echo "Removing logs..."
+    rm -f "$SCRIPT_DIR/playit.log"
+
+    echo ""
+    echo -e "${GREEN}✓ Playit.gg uninstalled${NC}"
+    echo ""
+    read -p "Press Enter to continue..."
 }
 
 show_menu() {
-    # Check status
-    if pgrep -x "playit" > /dev/null; then
-        STATUS="${GREEN}● RUNNING${NC}"
-        PLAYIT_PID=$(pgrep -x "playit")
+    # Check if installed
+    if command -v playit &> /dev/null; then
+        INSTALLED="${GREEN}● INSTALLED${NC}"
+
+        # Check status
+        if pgrep -x "playit" > /dev/null; then
+            STATUS="${GREEN}● RUNNING${NC}"
+            PLAYIT_PID=$(pgrep -x "playit")
+        else
+            STATUS="${YELLOW}● STOPPED${NC}"
+            PLAYIT_PID="N/A"
+        fi
     else
-        STATUS="${RED}● STOPPED${NC}"
+        INSTALLED="${RED}● NOT INSTALLED${NC}"
+        STATUS="N/A"
         PLAYIT_PID="N/A"
     fi
 
-    echo -e "${BLUE}Playit.gg Status:${NC} $STATUS"
-    if [ "$PLAYIT_PID" != "N/A" ]; then
-        echo -e "${BLUE}Process ID:${NC} $PLAYIT_PID"
+    echo -e "${BLUE}Installation Status:${NC} $INSTALLED"
+    if [ "$STATUS" != "N/A" ]; then
+        echo -e "${BLUE}Service Status:${NC}     $STATUS"
+        if [ "$PLAYIT_PID" != "N/A" ]; then
+            echo -e "${BLUE}Process ID:${NC}         $PLAYIT_PID"
+        fi
     fi
     echo ""
 
     echo -e "${YELLOW}Options:${NC}"
     echo ""
-    echo -e "  ${GREEN}[1]${NC} Start Playit.gg tunnel"
-    echo -e "  ${GREEN}[2]${NC} Stop Playit.gg tunnel"
-    echo -e "  ${GREEN}[3]${NC} Restart Playit.gg tunnel"
-    echo -e "  ${GREEN}[4]${NC} View active tunnels"
-    echo -e "  ${GREEN}[5]${NC} Get claim URL / Manage account"
-    echo -e "  ${GREEN}[6]${NC} Setup new tunnels"
-    echo -e "  ${GREEN}[7]${NC} View Playit.gg logs"
-    echo -e "  ${GREEN}[8]${NC} Back to main menu"
+    echo -e "  ${GREEN}[1]${NC} Install Playit.gg"
+    echo -e "  ${GREEN}[2]${NC} Start Playit.gg tunnel"
+    echo -e "  ${GREEN}[3]${NC} Stop Playit.gg tunnel"
+    echo -e "  ${GREEN}[4]${NC} Restart Playit.gg tunnel"
+    echo -e "  ${GREEN}[5]${NC} View active tunnels"
+    echo -e "  ${GREEN}[6]${NC} Get claim URL / Manage account"
+    echo -e "  ${GREEN}[7]${NC} Setup new tunnels"
+    echo -e "  ${GREEN}[8]${NC} View Playit.gg logs"
+    echo -e "  ${RED}[9]${NC} Uninstall Playit.gg"
+    echo -e "  ${GREEN}[0]${NC} Back to main menu"
     echo ""
     echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
     echo ""
 }
 
 start_playit() {
+    if ! command -v playit &> /dev/null; then
+        echo -e "${RED}✗ Playit.gg is not installed${NC}"
+        echo "  Use option [1] to install it first"
+        echo ""
+        read -p "Press Enter to continue..."
+        return
+    fi
+
     echo -e "${GREEN}Starting Playit.gg tunnel...${NC}"
     echo ""
 
@@ -90,7 +190,7 @@ start_playit() {
         playit tunnels list 2>/dev/null | grep "=>" | head -4
     else
         echo -e "${RED}✗ Failed to start Playit.gg${NC}"
-        echo "Check the logs with option [7]"
+        echo "Check the logs with option [8]"
     fi
 
     echo ""
@@ -277,43 +377,46 @@ view_logs() {
 }
 
 # Main execution
-show_header
-check_playit_installed
-
 while true; do
     show_header
     show_menu
-    read -p "Choose option [1-8]: " choice
+    read -p "Choose option [0-9]: " choice
     echo ""
 
     case $choice in
         1)
-            start_playit
+            install_playit
             ;;
         2)
-            stop_playit
+            start_playit
             ;;
         3)
-            restart_playit
+            stop_playit
             ;;
         4)
-            view_tunnels
+            restart_playit
             ;;
         5)
-            get_claim_url
+            view_tunnels
             ;;
         6)
-            setup_tunnels
+            get_claim_url
             ;;
         7)
-            view_logs
+            setup_tunnels
             ;;
         8)
+            view_logs
+            ;;
+        9)
+            uninstall_playit
+            ;;
+        0)
             clear
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please choose 1-8.${NC}"
+            echo -e "${RED}Invalid option. Please choose 0-9.${NC}"
             sleep 2
             ;;
     esac

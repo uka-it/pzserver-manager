@@ -15,6 +15,8 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 - **Real-time Status** - Live server/tunnel status display
 - **Interactive Prompts** - User-friendly navigation
 
+<img width="1123" height="1215" alt="image" src="https://github.com/user-attachments/assets/a5230330-5809-42f5-b441-43b67c23ec7a" />
+
 ### 🚀 Automated Setup
 - **One-Command Installation** - Complete server setup from scratch
 - **Dependency Management** - Auto-installs SteamCMD, Playit.gg, system packages
@@ -440,3 +442,4 @@ See [LICENSE](LICENSE) file for full terms.
 ---
 
 **Made with 💀 for the Project Zomboid community**
+

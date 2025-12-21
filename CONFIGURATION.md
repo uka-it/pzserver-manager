@@ -1,250 +1,425 @@
-# Configuration Guide
+# Advanced Configuration Guide
 
-## 📝 Environment Configuration
+This guide is for advanced users who want to customize their server beyond the setup wizard or run scripts directly.
 
-All server settings can be customized using a `.env` file.
+## 📑 Table of Contents
 
-### Quick Start
-
-1. Copy the example configuration:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Edit `.env` with your settings:
-   ```bash
-   nano .env
-   ```
-
-3. Run any script - it will automatically load your configuration
+- [Running Scripts Directly](#running-scripts-directly)
+- [Server Configuration Files](#server-configuration-files)
+- [Environment Variables (.env)](#environment-variables-env)
+- [Port Configuration](#port-configuration)
+- [Multiple Servers](#multiple-servers)
+- [Security Best Practices](#security-best-practices)
 
 ---
 
-## ⚙️ Configuration Options
+## 🚀 Running Scripts Directly
 
-### Server Settings
+While the server manager (`./server-manager.sh`) provides a menu interface, you can run individual scripts directly for automation or scripting purposes.
+
+### Server Control
 
 ```bash
-# Server Name (shown to players)
-SERVER_NAME="My Awesome PZ Server"
+# Start server with Playit.gg tunnel
+./start-all.sh
 
-# Server Description
-SERVER_DESCRIPTION="Welcome survivors! PvP enabled, friendly community."
+# Start server without tunnel
+./start-server-only.sh
 
-# Admin Password (used in-game to become admin)
-ADMIN_PASSWORD="your-secure-password-here"
+# Stop everything (server + tunnel)
+./stop-all.sh
 
-# Maximum Players
+# Stop server only (keep tunnel running)
+./stop-server-only.sh
+
+# View status
+./status.sh
+```
+
+### Maintenance
+
+```bash
+# Update server files (current branch)
+./update-server.sh
+
+# Switch game branch
+./list-branches.sh
+
+# Clean cache and workshop files
+./clean-cache.sh
+```
+
+### World Management
+
+```bash
+# Reset world (prompts for backup)
+./reset-world.sh
+
+# Manage backups (create/restore/delete)
+./manage-backups.sh
+```
+
+### Configuration
+
+```bash
+# Edit server config files
+./edit-server-config.sh
+
+# Setup new server
+./setup-new-server.sh
+
+# Manage Playit.gg tunnels
+./manage-playit.sh
+
+# Uninstall components
+./uninstall.sh
+```
+
+---
+
+## 📝 Server Configuration Files
+
+Server configuration files are located in `~/Zomboid/Server/pzserver/`
+
+### pzserver.ini
+
+Main server configuration file. Key settings:
+
+```ini
+# Server Identity
+PublicName=My Server Name
+PublicDescription=Server description shown in browser
+
+# Access Control
+AdminPassword=your-admin-password
+Password=player-password-to-join
+Open=true
+
+# Player Limits
+MaxPlayers=32
+PVP=true
+
+# Ports
+DefaultPort=16261
+UDPPort=16262
+
+# RCON (Remote Console)
+RCONPassword=rcon-password
+RCONPort=27015
+```
+
+### pzserver_SandboxVars.lua
+
+Gameplay and sandbox settings:
+
+```lua
+SandboxVars = {
+    -- Zombie Settings
+    Zombies = 4,  -- 1=Sprinters, 2=Fast Shamblers, 3=Shamblers, 4=Random
+    Distribution = 1,  -- Zombie population
+    Speed = 2,  -- Day speed
+
+    -- Loot Settings
+    LootRarity = 2,  -- 1=Extremely Rare, 2=Rare, 3=Normal, 4=Abundant
+
+    -- Gameplay
+    XpMultiplier = 1.0,
+    StatsDecrease = 3,  -- Hunger/thirst rate
+
+    -- More settings...
+}
+```
+
+### Spawn Files
+
+- **pzserver_spawnpoints.lua** - Define where players spawn
+- **pzserver_spawnregions.lua** - Define spawn regions
+
+### Editing Config Files
+
+**Option 1: Use the built-in editor**
+```bash
+./server-manager.sh → [12] Edit server config files
+```
+
+**Option 2: Edit manually**
+```bash
+nano ~/Zomboid/Server/pzserver/pzserver.ini
+```
+
+**Note:** Restart the server for changes to take effect.
+
+---
+
+## 🔧 Environment Variables (.env)
+
+The `.env` file allows you to override default settings. The setup wizard creates this file automatically, but advanced users can manually edit it.
+
+### Creating .env File
+
+```bash
+# The setup wizard creates this for you, but you can also:
+nano /home/liviouka/pzserver-manager/.env
+```
+
+### Available Variables
+
+```bash
+# Server Settings
+SERVER_NAME="My PZ Server"
+SERVER_DESCRIPTION="Server description"
+ADMIN_PASSWORD="changeme123"
 MAX_PLAYERS=32
-```
 
-### Installation Paths
-
-```bash
-# Where to install the server
+# Installation Paths
 INSTALL_DIR="$HOME/pzserver"
-
-# SteamCMD location
 STEAMCMD_DIR="$INSTALL_DIR/steamcmd"
-```
 
-### Network Ports
-
-```bash
-# Main server port (UDP)
+# Network Ports
 DEFAULT_PORT=16261
-
-# Secondary UDP port
 UDP_PORT=16262
-
-# Steam authentication ports
 STEAM_PORT1=8766
 STEAM_PORT2=8767
-
-# RCON port (if enabled)
 RCON_PORT=27015
-```
 
-### Public Access (Optional)
+# Public Access (for status display)
+PUBLIC_DOMAIN=""  # e.g., "myserver.example.com"
+PUBLIC_IPV6=""    # e.g., "2001:db8::1"
+PLAYIT_TUNNEL=""  # e.g., "my-tunnel.gl.at.ply.gg:11128"
 
-These are shown in the status display for player connections:
-
-```bash
-# Your public domain (if you have one)
-PUBLIC_DOMAIN="myserver.example.com"
-
-# Your public IPv6 address (if you have one)
-PUBLIC_IPV6="2001:db8::1"
-
-# Your Playit.gg tunnel address
-PLAYIT_TUNNEL="your-tunnel.gl.at.ply.gg:11128"
-```
-
-**Note:** Leave empty (`=""`) if not applicable.
-
-### Playit.gg Configuration
-
-```bash
-# Enable/disable Playit.gg integration
+# Features
 PLAYIT_ENABLED=true
 ```
 
----
+### Configuration Loading Order
 
-## 📖 Examples
+1. **Built-in defaults** from scripts
+2. **.env file** overrides defaults
+3. **Environment variables** override .env
 
-### Example 1: Basic Setup
-
-```bash
-SERVER_NAME="Zombie Apocalypse"
-ADMIN_PASSWORD="changeme123"
-MAX_PLAYERS=16
-```
-
-Everything else uses defaults. Perfect for getting started quickly!
-
-### Example 2: Public Server with Custom Domain
+### Example: Temporary Override
 
 ```bash
-SERVER_NAME="Official Survival Server"
-SERVER_DESCRIPTION="Hardcore survival | PvP | Active admins"
-ADMIN_PASSWORD="super-secret-admin-pass"
-MAX_PLAYERS=64
-PUBLIC_DOMAIN="pz.myserver.com"
-PLAYIT_TUNNEL="awesome-server.gl.at.ply.gg:12345"
-```
-
-### Example 3: Private LAN Server
-
-```bash
-SERVER_NAME="Friends Only Server"
-ADMIN_PASSWORD="friends123"
-MAX_PLAYERS=8
-PLAYIT_ENABLED=false
-```
-
-No public access needed - just LAN play!
-
----
-
-## 🔧 How Configuration Works
-
-### Loading Order
-
-1. **Defaults** - Built-in defaults from `config.sh`
-2. **Environment** - `.env` file overrides defaults
-3. **Script Variables** - Can be overridden per script
-
-### Example
-
-```bash
-# Default (config.sh)
-SERVER_NAME="My PZ Server"
-
-# Your .env file
-SERVER_NAME="Zombie Haven"
-
-# Final result: "Zombie Haven"
+# Use different port for this session only
+DEFAULT_PORT=17261 ./start-all.sh
 ```
 
 ---
 
-## 🚀 Advanced Usage
+## 🌐 Port Configuration
 
-### Per-Script Override
+### Default Ports
 
-You can override settings when running a script:
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| 16261 | UDP | Main game port |
+| 16262 | UDP | Secondary UDP port |
+| 8766 | UDP | Steam authentication 1 |
+| 8767 | UDP | Steam authentication 2 |
+| 27015 | TCP | RCON (if enabled) |
 
+### Changing Ports
+
+**Option 1: During Setup**
+The setup wizard will prompt for ports.
+
+**Option 2: Edit .env**
 ```bash
-# Use different port temporarily
-DEFAULT_PORT=16999 ./start-all.sh
-
-# Different server name
-SERVER_NAME="Test Server" ./server-manager.sh
+nano .env
+# Change:
+DEFAULT_PORT=17261
+UDP_PORT=17262
+STEAM_PORT1=9766
+STEAM_PORT2=9767
 ```
 
-### Multiple Servers
+**Option 3: Edit pzserver.ini**
+```bash
+nano ~/Zomboid/Server/pzserver/pzserver.ini
+# Change:
+DefaultPort=17261
+UDPPort=17262
+```
 
-To run multiple servers, use different installation directories:
+### Firewall Rules
+
+```bash
+# Allow server ports
+sudo ufw allow 16261/udp
+sudo ufw allow 16262/udp
+sudo ufw allow 8766/udp
+sudo ufw allow 8767/udp
+
+# If using RCON
+sudo ufw allow 27015/tcp
+```
+
+---
+
+## 🔀 Multiple Servers
+
+To run multiple servers on the same machine, use different installation directories and ports.
+
+### Setup Multiple Servers
+
+```bash
+# Server 1 (default)
+INSTALL_DIR="$HOME/pzserver1" \
+DEFAULT_PORT=16261 \
+./setup-new-server.sh
+
+# Server 2 (different ports)
+INSTALL_DIR="$HOME/pzserver2" \
+DEFAULT_PORT=17261 \
+STEAM_PORT1=9766 \
+./setup-new-server.sh
+```
+
+### Managing Multiple Servers
+
+Create separate directories and run the manager from each:
 
 ```bash
 # Server 1
-INSTALL_DIR="$HOME/pzserver1" DEFAULT_PORT=16261 ./setup-new-server.sh
+cd ~/pzserver1
+./server-manager.sh
 
 # Server 2
-INSTALL_DIR="$HOME/pzserver2" DEFAULT_PORT=17261 ./setup-new-server.sh
+cd ~/pzserver2
+./server-manager.sh
 ```
+
+**Note:** Each server needs unique ports and its own Playit.gg tunnels (if used).
 
 ---
 
-## 🔒 Security Notes
+## 🔒 Security Best Practices
 
-1. **NEVER commit your `.env` file** - It's in `.gitignore`
-2. **Change default passwords** - Don't use "changeme123" in production
-3. **Restrict file permissions**:
-   ```bash
-   chmod 600 .env
-   ```
-4. **Use strong admin passwords** - They're stored in plain text
+### 1. Strong Passwords
+
+```bash
+# Generate strong random password
+openssl rand -base64 32
+
+# Set in pzserver.ini
+AdminPassword=<generated-password>
+RCONPassword=<different-password>
+```
+
+### 2. Protect Configuration Files
+
+```bash
+# Restrict .env permissions
+chmod 600 .env
+
+# Only you can read/write
+ls -l .env
+# Output: -rw------- 1 user user ...
+```
+
+### 3. RCON Security
+
+If using RCON, bind to localhost only:
+
+```ini
+# In pzserver.ini
+RCONBind=127.0.0.1
+```
+
+Then use SSH tunneling:
+```bash
+ssh -L 27015:localhost:27015 user@your-server
+```
+
+### 4. Regular Backups
+
+```bash
+# Use the backup manager
+./manage-backups.sh
+
+# Or automate with cron
+0 2 * * * cd /home/liviouka/pzserver-manager && ./manage-backups.sh
+```
+
+### 5. Keep Server Updated
+
+```bash
+# Check for updates regularly
+./server-manager.sh → [8] Update server files
+```
+
+### 6. Whitelist Mode
+
+For private servers, enable whitelist:
+
+```ini
+# In pzserver.ini
+Open=false
+AutoCreateUserInWhiteList=false
+```
+
+Then manually add players via RCON or server files.
 
 ---
 
-## 🆘 Troubleshooting
+## 📚 Additional Resources
 
-### Configuration not loading?
+- **Project Zomboid Wiki:** https://pzwiki.net/wiki/Dedicated_server
+- **Server Settings:** https://pzwiki.net/wiki/Server_Settings
+- **Sandbox Options:** https://pzwiki.net/wiki/Sandbox_Options
+- **RCON Commands:** https://pzwiki.net/wiki/Server_Commands
+
+---
+
+## 🆘 Advanced Troubleshooting
+
+### Check Configuration Loading
 
 ```bash
-# Check if .env exists
-ls -la .env
-
-# Verify it's being sourced
-grep "source.*config.sh" server-manager.sh
-```
-
-### Wrong values being used?
-
-```bash
-# Check what config is loaded
+# See what config is loaded
+cd /home/liviouka/pzserver-manager
 source ./config.sh
 echo "Server: $SERVER_NAME"
 echo "Port: $DEFAULT_PORT"
+echo "Install Dir: $INSTALL_DIR"
 ```
 
-### Reset to defaults
+### Verify Server Files
 
 ```bash
-# Remove your custom config
+# Check if server is installed
+ls -la $INSTALL_DIR/ProjectZomboid64
+
+# Check server version
+cat $INSTALL_DIR/ProjectZomboid64.json | grep version
+```
+
+### Test Port Binding
+
+```bash
+# Check if ports are in use
+sudo lsof -i :16261
+sudo lsof -i :16262
+sudo lsof -i :8766
+sudo lsof -i :8767
+
+# Or use ss
+ss -ulpn | grep 16261
+```
+
+### Reset to Defaults
+
+```bash
+# Remove custom config
 rm .env
 
-# Copy fresh example
-cp .env.example .env
+# Remove server config (will regenerate)
+rm -rf ~/Zomboid/Server/pzserver/
+
+# Reinstall
+./setup-new-server.sh
 ```
 
 ---
 
-## 📋 Complete .env Template
-
-```bash
-# Project Zomboid Server Configuration
-SERVER_NAME="My PZ Server"
-SERVER_DESCRIPTION="A Project Zomboid Dedicated Server - Welcome Survivors!"
-ADMIN_PASSWORD="changeme123"
-MAX_PLAYERS=32
-
-INSTALL_DIR="$HOME/pzserver"
-STEAMCMD_DIR="$INSTALL_DIR/steamcmd"
-
-DEFAULT_PORT=16261
-UDP_PORT=16262
-STEAM_PORT1=8766
-STEAM_PORT2=8767
-RCON_PORT=27015
-
-PUBLIC_DOMAIN=""
-PUBLIC_IPV6=""
-PLAYIT_TUNNEL=""
-
-PLAYIT_ENABLED=true
-```
-
-Save this as `.env` and customize to your needs!
+**For basic usage, see the main [README.md](README.md)**

@@ -6,6 +6,21 @@
 
 A comprehensive, beautiful CLI management suite for Project Zomboid dedicated servers on Linux.
 
+## 📑 Table of Contents
+
+- [TL;DR](#-tldr)
+- [Features](#-features)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [File Structure](#-file-structure)
+- [Configuration](#-configuration)
+- [Playit.gg Tunneling](#-playitgg-tunneling)
+- [Troubleshooting](#-troubleshooting)
+- [Updating the Server](#-updating-the-server)
+- [Uninstallation](#-uninstallation)
+- [Quick Reference](#-quick-reference)
+- [License](#-license)
+
 ## ⚡ TL;DR
 
 1. ```bash
@@ -85,37 +100,22 @@ Everything else in the menu is optional maintenance.
 git clone https://github.com/uka-it/pzserver-manager.git
 cd pzserver-manager
 
-# 2. (Optional) Configure your server
-cp .env.example .env
-nano .env  # Edit with your settings
+# 2. Run the server manager
+./server-manager.sh
 
-# 3. Run the automated setup
-./setup-new-server.sh
+# 3. Choose option [11] Setup new server
 ```
 
-### Configuration (Optional)
+The setup wizard will guide you through:
+1. Installing system dependencies (lib32gcc-s1, curl)
+2. Installing SteamCMD
+3. Configuring your server (name, password, ports, etc.)
+4. Selecting game branch (Stable, Build 42, Unstable)
+5. Downloading Project Zomboid server files
 
-All scripts support configuration via `.env` file:
+After setup, use option `[1]` to start your server!
 
-```bash
-# Copy example configuration
-cp .env.example .env
-
-# Edit your settings
-nano .env
-```
-
-See [CONFIGURATION.md](CONFIGURATION.md) for detailed configuration options.
-
-**Default values work out of the box!** Configuration is optional.
-
-The setup script will:
-1. Install system dependencies (lib32gcc-s1, curl)
-2. Download and install SteamCMD
-3. Ask for your server preferences
-4. Download Project Zomboid server files
-5. Create initial configuration
-6. Optionally install Playit.gg
+For advanced configuration options, see [CONFIGURATION.md](CONFIGURATION.md)
 
 ### Manual Installation
 
@@ -158,7 +158,7 @@ Launch the management console:
 **🌐 PLAYIT.GG TUNNEL**
 - `[5]` Start Playit.gg tunnel
 - `[6]` Stop Playit.gg tunnel
-- `[7]` Manage/Install Playit.gg (claim URL, tunnels, logs, uninstall)
+- `[7]` Manage Playit.gg (install/setup/tunnels/logs)
 
 **🔧 MAINTENANCE**
 - `[8]` Update server files
@@ -166,82 +166,78 @@ Launch the management console:
 - `[10]` Clean cache & workshop files
 - `[11]` Setup new server (automated install)
 
+**⚙️ CONFIGURATION**
+- `[12]` Edit server config files (INI, sandbox, spawn points)
+
 **🌍 WORLD MANAGEMENT**
-- `[12]` Reset world (fresh start)
-- `[13]` Manage backups (view/restore/delete)
+- `[13]` Reset world (fresh start)
+- `[14]` Manage backups (create/restore/delete)
 
 **📋 OTHER**
-- `[14]` View server logs (live)
-- `[15]` Uninstall / Cleanup
+- `[15]` View server logs (live)
+- `[16]` Uninstall / Cleanup
 - `[x]` Exit
 
-### Individual Scripts
+That's it! Everything is accessible through the main menu.
 
-You can also run scripts directly:
-
-```bash
-# Start server
-./start-all.sh
-
-# Stop server
-./stop-all.sh
-
-# View status
-./status.sh
-
-# Switch branches
-./list-branches.sh
-
-# Update server
-./update-server.sh
-
-# Clean cache
-./clean-cache.sh
-
-# Reset world
-./reset-world.sh
-
-# Manage backups
-./manage-backups.sh
-```
+For advanced users who want to run individual scripts directly, see [CONFIGURATION.md](CONFIGURATION.md).
 
 ## 📁 File Structure
 
 ```
 pzserver-manager/
 ├── README.md                   # This file
-├── server-manager.sh          # Main management console
-├── setup-new-server.sh        # Automated installation
-├── start-all.sh               # Start server + Playit.gg
-├── stop-all.sh                # Stop all services
-├── status.sh                  # Show server status
-├── list-branches.sh           # Dynamic branch switcher
-├── switch-branch.sh           # Manual branch switcher
-├── update-server.sh           # Update current branch
-├── clean-cache.sh             # Cache/workshop cleaner
-├── reset-world.sh             # World reset tool
-├── manage-backups.sh          # Backup manager
-├── manage-playit.sh           # Playit.gg manager
-├── uninstall.sh               # Uninstall/cleanup tool
-├── start-server-only.sh       # Start without Playit.gg
-├── stop-server-only.sh        # Stop server, keep Playit.gg
-└── start-pzserver.sh          # PZ server starter
+├── CONFIGURATION.md            # Advanced configuration guide
+├── server-manager.sh           # Main management console ⭐ Start here!
+├── setup-new-server.sh         # Automated installation wizard
+├── edit-server-config.sh       # Config file editor (INI, Lua, spawn files)
+├── start-all.sh                # Start server + Playit.gg
+├── stop-all.sh                 # Stop all services
+├── status.sh                   # Show server status
+├── list-branches.sh            # Game branch switcher
+├── update-server.sh            # Update server files
+├── clean-cache.sh              # Cache/workshop cleaner
+├── reset-world.sh              # World reset tool
+├── manage-backups.sh           # Backup manager (create/restore/delete)
+├── manage-playit.sh            # Playit.gg tunnel manager
+├── uninstall.sh                # Uninstall/cleanup tool
+└── lib/                        # Shared UI components
+    └── ui-box.sh               # Box-drawing functions
 ```
 
-## 🔑 Default Configuration
+## 🔑 Configuration
 
-After installation, your server will have these defaults:
+The setup wizard will ask you to configure:
 
-- **Server Name:** ShadowZombie Server
-- **Admin Password:** changeme123
-- **Max Players:** 32
-- **Main Port:** 16261 (UDP)
-- **Secondary Port:** 16262 (UDP)
-- **Steam Ports:** 8766, 8767 (UDP)
+- **Server Name** - Shown to players (default: "My PZ Server")
+- **Admin Password** - For admin commands (default: "changeme123")
+- **Max Players** - Maximum concurrent players (default: 32)
+- **Game Port** - Main server port (default: 16261 UDP)
+- **Steam Ports** - Authentication ports (default: 8766, 8767 UDP)
+- **Game Branch** - Stable, Build 42, or Unstable
 
-**⚠️ IMPORTANT:** Change the admin password in:
-```
-~/.local/share/Zomboid/Server/pzserver/pzserver.ini
+**⚠️ IMPORTANT:** To change admin password after setup, use option `[12] Edit server config files` from the main menu.
+
+### Editing Server Configuration
+
+Use option `[12]` from the main menu to edit server configuration files:
+
+**Available Files:**
+- **Server Configuration** (`pzserver.ini`) - Server name, password, ports, max players, PVP settings
+- **Sandbox Variables** (`pzserver_SandboxVars.lua`) - Gameplay settings, zombie spawns, loot, difficulty
+- **Spawn Points** (`pzserver_spawnpoints.lua`) - Player spawn locations
+- **Spawn Regions** (`pzserver_spawnregions.lua`) - Spawn region definitions
+
+**Features:**
+- Opens files in nano editor
+- Automatic backup before editing (`.backup-YYYYMMDD-HHMMSS`)
+- Warns if server is running
+- Shows which files exist/missing
+- Confirms when changes are saved
+
+**Usage:**
+```bash
+./server-manager.sh → [12] → Select file → Edit in nano → Save (Ctrl+X, Y)
 ```
 
 ## 🌐 Playit.gg Tunneling
@@ -440,17 +436,20 @@ See [LICENSE](LICENSE) file for full terms.
 # Stop server
 ./server-manager.sh → [2]
 
+# Edit server config
+./server-manager.sh → [12]
+
 # View logs
-./server-manager.sh → [11] → [1/2/3]
+./server-manager.sh → [15] → [1/2/3]
 
 # Switch branch
-./server-manager.sh → [6]
+./server-manager.sh → [9]
 
-# Backup world
-./server-manager.sh → [10]
+# Create backup
+./server-manager.sh → [14] → [1]
 
 # Reset world
-./server-manager.sh → [9]
+./server-manager.sh → [13]
 ```
 
 ---

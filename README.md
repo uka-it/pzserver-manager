@@ -109,7 +109,7 @@ The setup wizard will guide you through:
 1. Installing system dependencies (lib32gcc-s1, curl)
 2. Installing SteamCMD
 3. Configuring your server (name, password, ports, etc.)
-4. Selecting game branch (Stable, Build 42, Unstable)
+4. Selecting game branch
 5. Downloading Project Zomboid server files
 
 After setup, use option `[1]` to start your server!
@@ -213,7 +213,7 @@ The setup wizard will ask you to configure:
 - **Max Players** - Maximum concurrent players (default: 32)
 - **Game Port** - Main server port (default: 16261 UDP)
 - **Steam Ports** - Authentication ports (default: 8766, 8767 UDP)
-- **Game Branch** - Stable, Build 42, or Unstable
+- **Game Branch** - Select available game branch from Steam
 
 **⚠️ IMPORTANT:** To change admin password after setup, use option `[12] Edit server config files` from the main menu.
 
@@ -454,6 +454,7 @@ See [LICENSE](LICENSE) file for full terms.
 ---
 
 **Made with 💀 for the Project Zomboid community**
+
 
 
 

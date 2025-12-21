@@ -4,17 +4,16 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 
 ## ⚡ TL;DR
 
-1. **Clone & enter repo**
-   ```bash
+1. ```bash
    git clone https://github.com/uka-it/pzserver-manager.git
    cd pzserver-manager
+   ./server-manager.sh
    ```
-2. **Run the automated installer** – `./setup-new-server.sh`
-3. **Launch the menu** – `./server-manager.sh`
-4. **Start the server** – choose `[1]` (or run `./start-all.sh`)
-5. **Need Playit.gg?** – from the menu pick `[7]` to install/manage the tunnel (or run `./manage-playit.sh`)
+2. Inside the menu pick **`[11] Setup new server`** to run the guided installer.
+3. Use **`[1] Start server`** whenever you want to bring it online.
+4. Need a tunnel? Choose **`[7] Manage Playit.gg`** (start/stop/install/tunnels/logs).
 
-That’s it—everything else is optional polish.
+Everything else in the menu is optional maintenance.
 
 ![Project Zomboid](https://img.shields.io/badge/Project%20Zomboid-Dedicated%20Server-red)
 ![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-orange)

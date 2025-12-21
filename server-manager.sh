@@ -50,9 +50,9 @@ show_menu() {
     clear
     show_header
 
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║                          ${YELLOW}SERVER MANAGEMENT CONSOLE${CYAN}                           ║${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
     echo ""
 
     # Detect current branch
@@ -88,11 +88,25 @@ show_menu() {
         PLAYIT_STATUS="${YELLOW}● STOPPED${NC}"
     fi
 
-    echo -e "  ${BLUE}Server Status:${NC}  $SERVER_STATUS"
-    echo -e "  ${BLUE}Playit.gg:${NC}     $PLAYIT_STATUS"
-    echo -e "  ${BLUE}Game Branch:${NC}   ${CYAN}$BRANCH_DISPLAY${NC}"
+    # Get IP address
+    SERVER_IP=$(hostname -I | awk '{print $1}')
+    [ -z "$SERVER_IP" ] && SERVER_IP="Not detected"
+
+    # Get memory allocation (from ProjectZomboid64.json or default)
+    if [ -f "$INSTALL_DIR/ProjectZomboid64.json" ]; then
+        SERVER_MEMORY=$(grep -o '"vmArgs".*-Xmx[0-9]*[gGmM]' "$INSTALL_DIR/ProjectZomboid64.json" 2>/dev/null | grep -o '[0-9]*[gGmM]' | tail -1)
+    fi
+    [ -z "$SERVER_MEMORY" ] && SERVER_MEMORY="8G (default)"
+
+    echo -e "  ${BLUE}Server Status:${NC}    $SERVER_STATUS"
+    echo -e "  ${BLUE}Playit.gg:${NC}       $PLAYIT_STATUS"
+    echo -e "  ${BLUE}Game Branch:${NC}     ${CYAN}$BRANCH_DISPLAY${NC}"
+    echo -e "  ${BLUE}Server IP:${NC}       ${CYAN}$SERVER_IP${NC}"
+    echo -e "  ${BLUE}Server Ports:${NC}    ${CYAN}$DEFAULT_PORT${NC} (UDP: ${CYAN}$UDP_PORT${NC})"
+    echo -e "  ${BLUE}Steam Ports:${NC}     ${CYAN}$STEAM_PORT1${NC}, ${CYAN}$STEAM_PORT2${NC}"
+    echo -e "  ${BLUE}Server Memory:${NC}   ${CYAN}$SERVER_MEMORY${NC}"
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}╠════════════════════════════════════════════════════════════════════════════════╣${NC}"
     echo ""
     echo -e "${YELLOW}  ⚙  SERVER CONTROL${NC}"
     echo -e "    ${GREEN}[1]${NC} Start server"
@@ -120,7 +134,7 @@ show_menu() {
     echo -e "    ${RED}[15]${NC} Uninstall / Cleanup"
     echo -e "    ${GREEN}[x]${NC} Exit"
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
 

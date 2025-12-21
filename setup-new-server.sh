@@ -103,41 +103,95 @@ configure_server() {
     echo ""
     box_header "${GREEN}[3/4] Configuring Server Settings${NC}"
 
-    # Get server configuration from user
-    read -p "Enter server name (press Enter for 'My PZ Server'): " SERVER_NAME
-    if [ -z "$SERVER_NAME" ]; then
-        SERVER_NAME="My PZ Server"
+    # Check if .env file exists
+    ENV_FILE="$SCRIPT_DIR/.env"
+    USE_EXISTING_CONFIG=false
+
+    if [ -f "$ENV_FILE" ]; then
+        echo -e "${YELLOW}Existing configuration found!${NC}"
+        echo ""
+        echo -e "${CYAN}Current .env file contents:${NC}"
+        echo "────────────────────────────────────────────────"
+
+        # Display .env contents (hide comments and empty lines)
+        grep -v "^#" "$ENV_FILE" | grep -v "^$" | while read -r line; do
+            echo "  $line"
+        done
+
+        echo "────────────────────────────────────────────────"
+        echo ""
+        read -p "Use these existing values? (yes/no): " use_existing
+
+        if [ "$use_existing" = "yes" ]; then
+            USE_EXISTING_CONFIG=true
+            echo ""
+            echo -e "${GREEN}✓ Using existing configuration${NC}"
+            echo ""
+
+            # Load values from .env
+            source "$ENV_FILE"
+
+            # Use loaded values
+            SERVER_NAME="${SERVER_NAME:-My PZ Server}"
+            SERVER_DESC="${SERVER_DESCRIPTION:-A Project Zomboid Dedicated Server - Welcome Survivors!}"
+            ADMIN_PASS="${ADMIN_PASSWORD:-changeme123}"
+            MAX_PLAYERS="${MAX_PLAYERS:-32}"
+            DEFAULT_PORT="${DEFAULT_PORT:-16261}"
+            UDP_PORT="${UDP_PORT:-16262}"
+            STEAM_PORT1="${STEAM_PORT1:-8766}"
+            STEAM_PORT2="${STEAM_PORT2:-8767}"
+
+            echo "Loaded configuration:"
+            echo "  Server Name: $SERVER_NAME"
+            echo "  Max Players: $MAX_PLAYERS"
+            echo "  Game Port: $DEFAULT_PORT"
+            echo "  Steam Ports: $STEAM_PORT1, $STEAM_PORT2"
+            echo ""
+        else
+            echo ""
+            echo -e "${YELLOW}Existing .env will be replaced with new configuration${NC}"
+            echo ""
+        fi
     fi
 
-    read -p "Enter server description (press Enter for default): " SERVER_DESC
-    if [ -z "$SERVER_DESC" ]; then
-        SERVER_DESC="A Project Zomboid Dedicated Server - Welcome Survivors!"
-    fi
+    # If not using existing config, ask for values
+    if [ "$USE_EXISTING_CONFIG" = false ]; then
+        # Get server configuration from user
+        read -p "Enter server name (press Enter for 'My PZ Server'): " SERVER_NAME
+        if [ -z "$SERVER_NAME" ]; then
+            SERVER_NAME="My PZ Server"
+        fi
 
-    read -p "Enter admin password (press Enter for 'changeme123'): " ADMIN_PASS
-    if [ -z "$ADMIN_PASS" ]; then
-        ADMIN_PASS="changeme123"
-    fi
+        read -p "Enter server description (press Enter for default): " SERVER_DESC
+        if [ -z "$SERVER_DESC" ]; then
+            SERVER_DESC="A Project Zomboid Dedicated Server - Welcome Survivors!"
+        fi
 
-    read -p "Enter max players (press Enter for '32'): " MAX_PLAYERS
-    if [ -z "$MAX_PLAYERS" ]; then
-        MAX_PLAYERS=32
-    fi
+        read -p "Enter admin password (press Enter for 'changeme123'): " ADMIN_PASS
+        if [ -z "$ADMIN_PASS" ]; then
+            ADMIN_PASS="changeme123"
+        fi
 
-    echo ""
-    echo -e "${CYAN}Port Configuration:${NC}"
+        read -p "Enter max players (press Enter for '32'): " MAX_PLAYERS
+        if [ -z "$MAX_PLAYERS" ]; then
+            MAX_PLAYERS=32
+        fi
 
-    read -p "Enter game port (press Enter for '16261'): " DEFAULT_PORT
-    if [ -z "$DEFAULT_PORT" ]; then
-        DEFAULT_PORT=16261
-    fi
-    UDP_PORT=$((DEFAULT_PORT + 1))
+        echo ""
+        echo -e "${CYAN}Port Configuration:${NC}"
 
-    read -p "Enter Steam port 1 (press Enter for '8766'): " STEAM_PORT1
-    if [ -z "$STEAM_PORT1" ]; then
-        STEAM_PORT1=8766
+        read -p "Enter game port (press Enter for '16261'): " DEFAULT_PORT
+        if [ -z "$DEFAULT_PORT" ]; then
+            DEFAULT_PORT=16261
+        fi
+        UDP_PORT=$((DEFAULT_PORT + 1))
+
+        read -p "Enter Steam port 1 (press Enter for '8766'): " STEAM_PORT1
+        if [ -z "$STEAM_PORT1" ]; then
+            STEAM_PORT1=8766
+        fi
+        STEAM_PORT2=$((STEAM_PORT1 + 1))
     fi
-    STEAM_PORT2=$((STEAM_PORT1 + 1))
 
     echo ""
     echo -e "${GREEN}Port Configuration:${NC}"

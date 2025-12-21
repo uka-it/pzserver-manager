@@ -1,4 +1,8 @@
 # 🧟 Project Zomboid Dedicated Server Manager
+![Project Zomboid](https://img.shields.io/badge/Project%20Zomboid-Dedicated%20Server-red)
+![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-orange)
+![Platform](https://img.shields.io/badge/platform-Linux-blue)
+![Non-Commercial](https://img.shields.io/badge/use-non--commercial-green)
 
 A comprehensive, beautiful CLI management suite for Project Zomboid dedicated servers on Linux.
 
@@ -15,10 +19,7 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 
 Everything else in the menu is optional maintenance.
 
-![Project Zomboid](https://img.shields.io/badge/Project%20Zomboid-Dedicated%20Server-red)
-![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-orange)
-![Platform](https://img.shields.io/badge/platform-Linux-blue)
-![Non-Commercial](https://img.shields.io/badge/use-non--commercial-green)
+
 
 ## ✨ Features
 
@@ -455,4 +456,5 @@ See [LICENSE](LICENSE) file for full terms.
 ---
 
 **Made with 💀 for the Project Zomboid community**
+
 

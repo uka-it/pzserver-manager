@@ -65,8 +65,11 @@ While the server manager (`./server-manager.sh`) provides a menu interface, you 
 # Edit server config files
 ./edit-server-config.sh
 
-# Setup new server
+# Setup new server (detects and can reuse existing .env configuration)
 ./setup-new-server.sh
+
+# Reset admin password
+./reset-admin-password.sh
 
 # Manage Playit.gg tunnels
 ./manage-playit.sh
@@ -74,6 +77,8 @@ While the server manager (`./server-manager.sh`) provides a menu interface, you 
 # Uninstall components
 ./uninstall.sh
 ```
+
+**Note:** When running `setup-new-server.sh`, if an existing `.env` file is found, you'll be asked if you want to reuse those settings. This makes reinstalling much easier as you don't need to re-enter all your configuration.
 
 ---
 

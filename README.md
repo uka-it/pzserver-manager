@@ -19,6 +19,7 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 - [Updating the Server](#-updating-the-server)
 - [Uninstallation](#-uninstallation)
 - [Quick Reference](#-quick-reference)
+- [TODO / Roadmap](#-todo--roadmap)
 - [License](#-license)
 
 ## ⚡ TL;DR
@@ -111,6 +112,12 @@ The setup wizard will guide you through:
 3. Configuring your server (name, password, ports, etc.)
 4. Selecting game branch
 5. Downloading Project Zomboid server files
+
+**Smart Configuration:**
+- If you're reinstalling, the wizard will detect your existing `.env` file
+- You can choose to reuse your previous settings (skips all configuration questions)
+- Or create a new configuration from scratch
+- Admin password is automatically reset on reinstall to ensure it applies correctly
 
 After setup, use option `[1]` to start your server!
 
@@ -390,6 +397,17 @@ The uninstall script will:
 - Show sizes before removal
 - Ask for confirmation
 - Provide detailed feedback
+
+## 📋 TODO / Roadmap
+
+Planned features and improvements:
+
+- **Multiple Server Instances** - Ability to create and manage multiple server installations/instances from a single manager
+  - Separate configuration for each instance
+  - Easy switching between server instances
+  - Independent start/stop/update for each server
+
+Contributions and suggestions welcome!
 
 ## 🤝 Contributing
 

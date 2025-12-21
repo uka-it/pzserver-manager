@@ -7,11 +7,51 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+show_header() {
+    clear
+    # CRT Phosphor Green
+    local CRT_GREEN='\033[1;92m'
+
+    echo -e "${RED}"
+    cat << 'EOF'
+ ██▓███   ██▀███   ▒█████   ▄▄▄██▀▀▀▓█████  ▄████▄  ▄▄▄█████▓   ▒███████▒ ▒█████   ███▄ ▄███▓ ▄▄▄▄    ▒█████   ██▓▓█████▄
+▓██░  ██▒▓██ ▒ ██▒▒██▒  ██▒   ▒██   ▓█   ▀ ▒██▀ ▀█  ▓  ██▒ ▓▒   ▒ ▒ ▒ ▄▀░▒██▒  ██▒▓██▒▀█▀ ██▒▓█████▄ ▒██▒  ██▒▓██▒▒██▀ ██▌
+▓██░ ██▓▒▓██ ░▄█ ▒▒██░  ██▒   ░██   ▒███   ▒▓█    ▄ ▒ ▓██░ ▒░   ░ ▒ ▄▀▒░ ▒██░  ██▒▓██    ▓██░▒██▒ ▄██▒██░  ██▒▒██▒░██   █▌
+▒██▄█▓▒ ▒▒██▀▀█▄  ▒██   ██░▓██▄██▓  ▒▓█  ▄ ▒▓▓▄ ▄██▒░ ▓██▓ ░      ▄▀▒   ░▒██   ██░▒██    ▒██ ▒██░█▀  ▒██   ██░░██░░▓█▄   ▌
+▒██▒ ░  ░░██▓ ▒██▒░ ████▓▒░ ▓███▒   ░▒████▒▒ ▓███▀ ░  ▒██▒ ░    ▒███████▒░ ████▓▒░▒██▒   ░██▒░▓█  ▀█▓░ ████▓▒░░██░░▒████▓
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░ ▒░▒░▒░  ▒▓▒▒░   ░░ ▒░ ░░ ░▒ ▒  ░  ▒ ░░      ░▒▒ ▓░▒░▒░ ▒░▒░▒░ ░ ▒░   ░  ░░▒▓███▀▒░ ▒░▒░▒░ ░▓   ▒▒▓  ▒
+░▒ ░       ░▒ ░ ▒░  ░ ▒ ▒░  ▒ ░▒░    ░ ░  ░  ░  ▒       ░       ░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░  ░      ░▒░▒   ░   ░ ▒ ▒░  ▒ ░ ░ ▒  ▒
+░░         ░░   ░ ░ ░ ░ ▒   ░ ░ ░      ░   ░          ░         ░ ░ ░ ░ ░░ ░ ░ ▒  ░      ░    ░    ░ ░ ░ ░ ▒   ▒ ░ ░ ░  ░
+            ░         ░ ░   ░   ░      ░  ░░ ░                    ░ ░        ░ ░         ░    ░          ░ ░   ░     ░
+                                           ░                    ░                                  ░               ░
+EOF
+    echo -e "${CRT_GREEN}"
+    cat << 'EOF'
+▄▄▄▄▄▄            ▄▄                                ▄▄    ▄▄▄▄▄▄▄
+███▀▀██▄          ██ ▀▀               ██            ██   █████▀▀▀
+███  ███ ▄█▀█▄ ▄████ ██  ▄████  ▀▀█▄ ▀██▀▀ ▄█▀█▄ ▄████    ▀████▄  ▄█▀█▄ ████▄ ██ ██ ▄█▀█▄ ████▄
+███  ███ ██▄█▀ ██ ██ ██  ██    ▄█▀██  ██   ██▄█▀ ██ ██      ▀████ ██▄█▀ ██ ▀▀ ██▄██ ██▄█▀ ██ ▀▀
+██████▀  ▀█▄▄▄ ▀████ ██▄ ▀████ ▀█▄██  ██   ▀█▄▄▄ ▀████   ███████▀ ▀█▄▄▄ ██     ▀█▀  ▀█▄▄▄ ██
+EOF
+    echo -e "${NC}"
+    echo ""
+}
+
 cd "${SCRIPT_DIR}"
 
-echo "=================================================="
-echo "Starting ${SERVER_NAME:-Project Zomboid Server}"
-echo "=================================================="
+show_header
+echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║                           ${YELLOW}STARTING SERVER${CYAN}                                    ║${NC}"
+echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
+echo ""
 
 # Check if PZ server is already running
 if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
@@ -37,15 +77,15 @@ else
     BRANCH_DISPLAY="Unknown"
 fi
 
-echo "=================================================="
-echo "Starting Project Zomboid Server..."
-echo "Server Name: ${SERVER_NAME:-My PZ Server}"
-echo "Branch: $BRANCH_DISPLAY"
-echo "Memory: 8GB"
-echo "Mode: Direct Connection (No Playit.gg)"
-echo "=================================================="
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${YELLOW}Server Configuration:${NC}"
+echo -e "  ${BLUE}Name:${NC}   ${SERVER_NAME:-My PZ Server}"
+echo -e "  ${BLUE}Branch:${NC} $BRANCH_DISPLAY"
+echo -e "  ${BLUE}Memory:${NC} 8GB"
+echo -e "  ${BLUE}Mode:${NC}   Direct Connection (No Playit.gg)"
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "Players can connect via:"
+echo -e "${YELLOW}Players can connect via:${NC}"
 if [ -n "$PUBLIC_DOMAIN" ]; then
     echo "  Domain: $PUBLIC_DOMAIN:$DEFAULT_PORT"
 fi
@@ -55,9 +95,9 @@ fi
 LOCAL_IP=$(hostname -I | awk '{print $1}')
 echo "  Local: ${LOCAL_IP:-127.0.0.1}:$DEFAULT_PORT"
 echo ""
-echo "=================================================="
-echo "Server is starting in background..."
-echo "=================================================="
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}Server is starting in background...${NC}"
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
 # Start the PZ server in background

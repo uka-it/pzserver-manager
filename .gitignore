@@ -26,6 +26,7 @@ db/
 .env
 *.ini
 *.cfg
+.admin_created
 
 # System
 .DS_Store

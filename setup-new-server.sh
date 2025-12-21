@@ -360,121 +360,32 @@ setup_playit() {
 
 create_server_config() {
     echo ""
-    echo "Creating server configuration..."
+    echo "Creating minimal server configuration..."
 
-    CONFIG_DIR="$ZOMBOID_DIR/Server/pzserver"
+    CONFIG_DIR="$ZOMBOID_DIR/Server"
     mkdir -p "$CONFIG_DIR"
 
     echo "  Creating: $CONFIG_DIR/pzserver.ini"
 
     cat > "$CONFIG_DIR/pzserver.ini" << EOF
-# Server Configuration
+# Minimal Server Configuration
+# The server will fill in remaining options with defaults
+
 PublicName=$SERVER_NAME
 PublicDescription=$SERVER_DESC
 MaxPlayers=$MAX_PLAYERS
-PVP=true
-PauseEmpty=true
-GlobalChat=true
-ChatStreams=s,r,a,w,y,sh,f,all
-Open=true
 ServerWelcomeMessage=Welcome to $SERVER_NAME! Survive the apocalypse together.
-
-# Ports
 DefaultPort=$DEFAULT_PORT
 UDPPort=$UDP_PORT
-
-# Admin
-AdminPassword=$ADMIN_PASS
-
-# Performance
-MaxAccountsPerUser=0
-AllowCoop=true
-SleepAllowed=false
-SleepNeeded=false
-
-# Mods
-Mods=
-WorkshopItems=
-
-# Map
-Map=Muldraugh, KY
-
-# Spawns
-SpawnPoint=0,0,0
-SpawnItems=
-
-# Game Settings
-HoursForLootRespawn=0
-MaxItemsForLootRespawn=4
-ConstructionPreventsLootRespawn=true
-DropOffWhiteListItems=Base.Axe,Base.HandAxe,Base.WoodAxe
-TrashDeleteAll=false
-PVPMeleeDamageModifier=30.0
-PVPFirearmDamageModifier=50.0
-CarSpawnRate=3
-ChanceHasGas=14
-InitialGas=2
-FuelStationGas=100
-LockedCar=6
-CarGeneralCondition=2
-CarDamageOnImpact=3
-DamageToPlayerFromHitByACar=1
-TrafficJam=true
-CarAlarm=2
-PlayerRespawnWithSelf=false
-PlayerRespawnWithOther=false
-FastForwardMultiplier=40.0
-DisableRadioStaff=false
-DisableRadioAdmin=true
-DisableRadioGM=true
-DisableRadioOverseer=false
-DisableRadioModerator=false
-DisableRadioInvisible=true
-ClientCommandFilter=- vehicle.* +vehicle.installPart +vehicle.uninstallPart
-ClientActionLogs=ISEnterVehicle,ISExitVehicle,ISTakeEngineParts;
-PerksLognumber=3
-BloodSplatLifespanDays=0
-AllowDestructionBySledgehammer=true
-SledgehammerOnlyInSafehouse=false
-KickFastPlayers=false
-ServerPlayerID=1061109567
-RCONPort=27015
-RCONPassword=changeme456
-DiscordEnable=false
-DiscordToken=
-DiscordChannel=
-DiscordChannelID=
-server_browser_announced_ip=
-Steam1=$STEAM_PORT1
-Steam2=$STEAM_PORT2
-SteamScoreboard=true
-SteamVAC=true
-UPnP=true
-VoiceEnable=true
-VoiceMinDistance=10.0
-VoiceMaxDistance=100.0
-Voice3D=true
-SpeedLimit=70.0
-LoginQueueEnabled=false
-LoginQueueConnectTimeout=60
-Server=pzserver
-SteamPort1=$STEAM_PORT1
-SteamPort2=$STEAM_PORT2
 EOF
 
     echo ""
 
-    # Verify the config was created and contains the password
+    # Verify the config was created
     if [ -f "$CONFIG_DIR/pzserver.ini" ]; then
-        if grep -q "AdminPassword=$ADMIN_PASS" "$CONFIG_DIR/pzserver.ini"; then
-            echo -e "${GREEN}✓ Server configuration created successfully${NC}"
-            echo "  Admin Password: $ADMIN_PASS"
-            echo "  Config Location: $CONFIG_DIR/pzserver.ini"
-        else
-            echo -e "${YELLOW}⚠ Config created but password verification failed${NC}"
-            echo "  Location: $CONFIG_DIR/pzserver.ini"
-            echo "  You may need to manually set: AdminPassword=$ADMIN_PASS"
-        fi
+        echo -e "${GREEN}✓ Minimal server configuration created${NC}"
+        echo "  Config Location: $CONFIG_DIR/pzserver.ini"
+        echo "  Admin password will be set via command-line on first start"
     else
         echo -e "${RED}✗ Failed to create config file${NC}"
         echo "  Expected at: $CONFIG_DIR/pzserver.ini"

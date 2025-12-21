@@ -9,6 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
 OLD_CONFIG="$HOME/.local/share/Zomboid/Server/pzserver/pzserver.ini"
+OLD_CONFIG2="$HOME/Zomboid/Server/pzserver/pzserver.ini"
 NEW_CONFIG="$SERVER_CONFIG_DIR/pzserver.ini"
 
 echo "=================================================="
@@ -17,8 +18,13 @@ echo "=================================================="
 echo ""
 
 # Check if old config exists
-if [ ! -f "$OLD_CONFIG" ]; then
-    echo "✓ No old config found at: $OLD_CONFIG"
+SOURCE_CONFIG=""
+if [ -f "$OLD_CONFIG" ]; then
+    SOURCE_CONFIG="$OLD_CONFIG"
+elif [ -f "$OLD_CONFIG2" ]; then
+    SOURCE_CONFIG="$OLD_CONFIG2"
+else
+    echo "✓ No old config found"
     echo "  Nothing to migrate."
     exit 0
 fi
@@ -43,7 +49,7 @@ fi
 
 echo "Migrating config file..."
 echo ""
-echo "From: $OLD_CONFIG"
+echo "From: $SOURCE_CONFIG"
 echo "To:   $NEW_CONFIG"
 echo ""
 
@@ -51,18 +57,16 @@ echo ""
 mkdir -p "$SERVER_CONFIG_DIR"
 
 # Copy the config
-cp "$OLD_CONFIG" "$NEW_CONFIG"
+cp "$SOURCE_CONFIG" "$NEW_CONFIG"
 
 if [ $? -eq 0 ]; then
     echo "✓ Config file migrated successfully"
     echo ""
-    echo "Admin password from config:"
-    grep "AdminPassword" "$NEW_CONFIG"
+    echo "Note: Admin password must be set via command-line parameter"
+    echo "      It cannot be stored in the INI file."
     echo ""
-    echo "You can now start the server and it will find the admin password."
-    echo ""
-    echo "Old config is still at: $OLD_CONFIG"
-    echo "You can delete it if you want: rm '$OLD_CONFIG'"
+    echo "Old config is still at: $SOURCE_CONFIG"
+    echo "You can delete it if you want: rm '$SOURCE_CONFIG'"
 else
     echo "✗ Failed to copy config file"
     exit 1

@@ -8,12 +8,51 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
 BACKUP_DIR="$INSTALL_DIR/backups"
 SERVER_NAME="pzserver"
 
-echo "=================================================="
-echo "Project Zomboid Backup Manager"
-echo "=================================================="
+show_header() {
+    clear
+    # CRT Phosphor Green
+    local CRT_GREEN='\033[1;92m'
+
+    echo -e "${RED}"
+    cat << 'EOF'
+ ██▓███   ██▀███   ▒█████   ▄▄▄██▀▀▀▓█████  ▄████▄  ▄▄▄█████▓   ▒███████▒ ▒█████   ███▄ ▄███▓ ▄▄▄▄    ▒█████   ██▓▓█████▄
+▓██░  ██▒▓██ ▒ ██▒▒██▒  ██▒   ▒██   ▓█   ▀ ▒██▀ ▀█  ▓  ██▒ ▓▒   ▒ ▒ ▒ ▄▀░▒██▒  ██▒▓██▒▀█▀ ██▒▓█████▄ ▒██▒  ██▒▓██▒▒██▀ ██▌
+▓██░ ██▓▒▓██ ░▄█ ▒▒██░  ██▒   ░██   ▒███   ▒▓█    ▄ ▒ ▓██░ ▒░   ░ ▒ ▄▀▒░ ▒██░  ██▒▓██    ▓██░▒██▒ ▄██▒██░  ██▒▒██▒░██   █▌
+▒██▄█▓▒ ▒▒██▀▀█▄  ▒██   ██░▓██▄██▓  ▒▓█  ▄ ▒▓▓▄ ▄██▒░ ▓██▓ ░      ▄▀▒   ░▒██   ██░▒██    ▒██ ▒██░█▀  ▒██   ██░░██░░▓█▄   ▌
+▒██▒ ░  ░░██▓ ▒██▒░ ████▓▒░ ▓███▒   ░▒████▒▒ ▓███▀ ░  ▒██▒ ░    ▒███████▒░ ████▓▒░▒██▒   ░██▒░▓█  ▀█▓░ ████▓▒░░██░░▒████▓
+▒▓▒░ ░  ░░ ▒▓ ░▒▓░░ ▒░▒░▒░  ▒▓▒▒░   ░░ ▒░ ░░ ░▒ ▒  ░  ▒ ░░      ░▒▒ ▓░▒░▒░ ▒░▒░▒░ ░ ▒░   ░  ░░▒▓███▀▒░ ▒░▒░▒░ ░▓   ▒▒▓  ▒
+░▒ ░       ░▒ ░ ▒░  ░ ▒ ▒░  ▒ ░▒░    ░ ░  ░  ░  ▒       ░       ░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░  ░      ░▒░▒   ░   ░ ▒ ▒░  ▒ ░ ░ ▒  ▒
+░░         ░░   ░ ░ ░ ░ ▒   ░ ░ ░      ░   ░          ░         ░ ░ ░ ░ ░░ ░ ░ ▒  ░      ░    ░    ░ ░ ░ ░ ▒   ▒ ░ ░ ░  ░
+            ░         ░ ░   ░   ░      ░  ░░ ░                    ░ ░        ░ ░         ░    ░          ░ ░   ░     ░
+                                           ░                    ░                                  ░               ░
+EOF
+    echo -e "${CRT_GREEN}"
+    cat << 'EOF'
+▄▄▄▄▄▄            ▄▄                                ▄▄    ▄▄▄▄▄▄▄
+███▀▀██▄          ██ ▀▀               ██            ██   █████▀▀▀
+███  ███ ▄█▀█▄ ▄████ ██  ▄████  ▀▀█▄ ▀██▀▀ ▄█▀█▄ ▄████    ▀████▄  ▄█▀█▄ ████▄ ██ ██ ▄█▀█▄ ████▄
+███  ███ ██▄█▀ ██ ██ ██  ██    ▄█▀██  ██   ██▄█▀ ██ ██      ▀████ ██▄█▀ ██ ▀▀ ██▄██ ██▄█▀ ██ ▀▀
+██████▀  ▀█▄▄▄ ▀████ ██▄ ▀████ ▀█▄██  ██   ▀█▄▄▄ ▀████   ███████▀ ▀█▄▄▄ ██     ▀█▀  ▀█▄▄▄ ██
+EOF
+    echo -e "${NC}"
+    echo ""
+}
+
+show_header
+echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║                             ${YELLOW}BACKUP MANAGER${CYAN}                                    ║${NC}"
+echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
 # Create backup directory if it doesn't exist
@@ -22,7 +61,7 @@ mkdir -p "$BACKUP_DIR"
 # Check if there are any backups
 BACKUPS=("$BACKUP_DIR"/world-backup-*.tar.gz)
 if [ ! -f "${BACKUPS[0]}" ]; then
-    echo "No backups found in $BACKUP_DIR"
+    echo -e "${YELLOW}No backups found in $BACKUP_DIR${NC}"
     echo ""
     echo "Backups are created when you:"
     echo "  - Use ./reset-world.sh"
@@ -32,7 +71,7 @@ if [ ! -f "${BACKUPS[0]}" ]; then
 fi
 
 # List all backups with details
-echo "Available Backups:"
+echo -e "${YELLOW}Available Backups:${NC}"
 echo ""
 
 declare -a BACKUP_FILES
@@ -105,19 +144,19 @@ SELECTED_SIZE="${BACKUP_SIZES[$SELECTED_INDEX]}"
 SELECTED_DATE="${BACKUP_DATES[$SELECTED_INDEX]}"
 
 echo ""
-echo "=================================================="
-echo "Selected Backup:"
-echo "  Date: $SELECTED_DATE"
-echo "  Size: $SELECTED_SIZE"
-echo "  File: $SELECTED_BACKUP"
-echo "=================================================="
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${YELLOW}Selected Backup:${NC}"
+echo -e "  ${BLUE}Date:${NC} $SELECTED_DATE"
+echo -e "  ${BLUE}Size:${NC} $SELECTED_SIZE"
+echo -e "  ${BLUE}File:${NC} $SELECTED_BACKUP"
+echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "What would you like to do?"
+echo -e "${YELLOW}What would you like to do?${NC}"
 echo ""
-echo "1. Restore this backup (replaces current world)"
-echo "2. Delete this backup"
-echo "3. View backup contents (list files)"
-echo "4. Cancel"
+echo -e "  ${GREEN}[1]${NC} Restore this backup (replaces current world)"
+echo -e "  ${GREEN}[2]${NC} Delete this backup"
+echo -e "  ${GREEN}[3]${NC} View backup contents (list files)"
+echo -e "  ${GREEN}[4]${NC} Cancel"
 echo ""
 read -p "Choose action (1-4): " action
 
@@ -125,11 +164,11 @@ case $action in
     1)
         # Restore backup
         echo ""
-        echo "=================================================="
-        echo "RESTORE BACKUP"
-        echo "=================================================="
+        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+        echo -e "${YELLOW}RESTORE BACKUP${NC}"
+        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
         echo ""
-        echo "⚠ WARNING: This will REPLACE your current world!"
+        echo -e "${RED}⚠ WARNING: This will REPLACE your current world!${NC}"
         echo ""
         echo "Current world will be deleted and replaced with:"
         echo "  Backup from: $SELECTED_DATE"
@@ -210,11 +249,11 @@ case $action in
     2)
         # Delete backup
         echo ""
-        echo "=================================================="
-        echo "DELETE BACKUP"
-        echo "=================================================="
+        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+        echo -e "${YELLOW}DELETE BACKUP${NC}"
+        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
         echo ""
-        echo "⚠ WARNING: This will permanently delete the backup!"
+        echo -e "${RED}⚠ WARNING: This will permanently delete the backup!${NC}"
         echo ""
         echo "  Date: $SELECTED_DATE"
         echo "  Size: $SELECTED_SIZE"
@@ -242,9 +281,9 @@ case $action in
     3)
         # View contents
         echo ""
-        echo "=================================================="
-        echo "BACKUP CONTENTS"
-        echo "=================================================="
+        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
+        echo -e "${YELLOW}BACKUP CONTENTS${NC}"
+        echo -e "${CYAN}════════════════════════════════════════════════════════════════════════════════${NC}"
         echo ""
         tar -tzf "$SELECTED_BACKUP" 2>/dev/null | head -50
         echo ""

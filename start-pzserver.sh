@@ -29,14 +29,24 @@ JSIG="libjsig.so"
 
 # Check if this is first run (admin not created yet)
 ADMIN_PARAM=""
-FIRST_RUN=false
 
 if [ ! -f "$ADMIN_FLAG" ] && [ -n "$ADMIN_PASSWORD" ]; then
     # First run - pass admin password
     ADMIN_PARAM="-adminpassword \"$ADMIN_PASSWORD\""
-    FIRST_RUN=true
     echo "First run detected - admin password will be set"
     echo ""
+
+    # Create flag file immediately to prevent re-use
+    touch "$ADMIN_FLAG"
+
+    # Remove admin password from .env file for security (do it now, not after server stops)
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        echo "Removing admin password from .env for security..."
+        sed -i '/^ADMIN_PASSWORD=/d' "$SCRIPT_DIR/.env"
+        echo "✓ Admin password removed from .env file"
+        echo "  (Password will be used this one time, then stored in server database)"
+        echo ""
+    fi
 else
     echo "Admin already configured"
     echo ""
@@ -47,23 +57,5 @@ fi
 LD_PRELOAD="${LD_PRELOAD}:${JSIG}" ./ProjectZomboid64 -servername "${SERVER_NAME}" $ADMIN_PARAM
 
 SERVER_EXIT_CODE=$?
-
-# If first run completed successfully, create flag and remove password from .env
-if [ "$FIRST_RUN" = true ] && [ $SERVER_EXIT_CODE -eq 0 ]; then
-    echo ""
-    echo "First run completed successfully"
-
-    # Create flag file
-    touch "$ADMIN_FLAG"
-
-    # Remove admin password from .env file for security
-    if [ -f "$SCRIPT_DIR/.env" ]; then
-        echo "Removing admin password from .env for security..."
-        sed -i '/^ADMIN_PASSWORD=/d' "$SCRIPT_DIR/.env"
-        echo "✓ Admin password removed from .env file"
-        echo "  (Password is now stored in server database)"
-    fi
-fi
-
 echo "Server stopped."
 exit $SERVER_EXIT_CODE

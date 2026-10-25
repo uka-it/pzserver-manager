@@ -16,7 +16,7 @@ echo "=================================================="
 echo ""
 
 # Check if server is running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "⚠ Server is currently running!"
     echo ""
     read -p "Stop server and continue? (yes/no): " confirm
@@ -30,62 +30,32 @@ if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
     sleep 3
 fi
 
-echo "Available Branches:"
+echo "Current branch: $(get_branch_display)"
 echo ""
-echo "1. STABLE (Build 41) - Recommended for public servers"
-echo "   Most stable, widely tested, full features"
+echo "Enter the Steam branch to install. Common branches:"
+echo "  public    - Default release branch"
+echo "  unstable  - Latest experimental build"
 echo ""
-echo "2. Build 42.13.1 - Specific stable Build 42 version"
-echo "   Fixed version of Build 42, recommended for multiplayer"
+echo "For the full, current list run: ./list-branches.sh"
 echo ""
-echo "3. UNSTABLE (Build 42) - Latest experimental build"
-echo "   Latest features, may have bugs, frequent updates"
-echo ""
-echo "4. PUBLIC_BETA - Public testing branch"
-echo "   Beta features before going to unstable"
-echo ""
-echo "5. IWILLBACKUPMYSAVE - Unstable testing branch"
-echo "   Newest experimental features, use with caution"
-echo ""
-echo "6. Cancel"
-echo ""
-read -p "Choose branch (1-6): " choice
+read -p "Branch name (press Enter for 'public', 'cancel' to quit): " SELECTED_BRANCH
+SELECTED_BRANCH="${SELECTED_BRANCH:-public}"
 
-case $choice in
-    1)
-        BRANCH=""
-        BRANCH_NAME="STABLE (Build 41)"
-        BETA_OPTION=""
-        ;;
-    2)
-        BRANCH="-beta 42.13.1"
-        BRANCH_NAME="Build 42.13.1"
-        BETA_OPTION="-beta 42.13.1"
-        ;;
-    3)
-        BRANCH="-beta unstable"
-        BRANCH_NAME="UNSTABLE (Build 42)"
-        BETA_OPTION="-beta unstable"
-        ;;
-    4)
-        BRANCH="-beta public_beta"
-        BRANCH_NAME="PUBLIC_BETA"
-        BETA_OPTION="-beta public_beta"
-        ;;
-    5)
-        BRANCH="-beta iwillbackupmysave"
-        BRANCH_NAME="IWILLBACKUPMYSAVE"
-        BETA_OPTION="-beta iwillbackupmysave"
-        ;;
-    6)
-        echo "Cancelled."
-        exit 0
-        ;;
-    *)
-        echo "Invalid choice."
-        exit 1
-        ;;
-esac
+if [ "$SELECTED_BRANCH" = "cancel" ]; then
+    echo "Cancelled."
+    exit 0
+fi
+if ! [[ "$SELECTED_BRANCH" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    echo "Invalid branch name."
+    exit 1
+fi
+
+BRANCH_NAME="$SELECTED_BRANCH"
+if [ "$SELECTED_BRANCH" = "public" ]; then
+    BETA_OPTION=""
+else
+    BETA_OPTION="-beta $SELECTED_BRANCH"
+fi
 
 echo ""
 echo "=================================================="
@@ -108,8 +78,8 @@ if [ "$do_backup" = "yes" ]; then
     echo ""
     echo "Creating backup..."
     tar -czf "$BACKUP_FILE" \
-        $ZOMBOID_DIR/Saves/Multiplayer/pzserver/ \
-        $ZOMBOID_DIR/db/pzserver.db \
+        "$PZ_SAVE_DIR"/ \
+        "$PZ_DB_FILE" \
         2>/dev/null
 
     if [ -f "$BACKUP_FILE" ]; then

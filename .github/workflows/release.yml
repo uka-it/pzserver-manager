@@ -1,0 +1,43 @@
+# Creates a GitHub release when a version tag (e.g. v2.0.0) is pushed.
+# Release notes come from the matching section in CHANGELOG.md.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check script syntax
+        run: |
+          for f in *.sh lib/*.sh docker/*.sh; do
+            bash -n "$f"
+          done
+
+      - name: Check VERSION matches the tag
+        run: |
+          version="$(cat VERSION)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::VERSION file says $version but the tag is $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          ./.github/scripts/changelog-notes.sh "${GITHUB_REF_NAME#v}" > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::No CHANGELOG.md entry for ${GITHUB_REF_NAME#v}"
+            exit 1
+          fi
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag

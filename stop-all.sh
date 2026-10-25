@@ -12,11 +12,13 @@ echo "Stopping ${SERVER_NAME:-Project Zomboid Server}"
 echo "=================================================="
 
 # Stop Project Zomboid server
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "Stopping Project Zomboid server..."
-    pkill -f "ProjectZomboid64.*pzserver"
-    sleep 3
-    echo "✓ Project Zomboid server stopped"
+    if stop_pz_server; then
+        echo "✓ Project Zomboid server stopped"
+    else
+        echo "✗ Server is still running (may need force kill)"
+    fi
 else
     echo "ℹ Project Zomboid server is not running"
 fi

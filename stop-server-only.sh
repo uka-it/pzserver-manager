@@ -51,12 +51,9 @@ show_header
 box_header "${YELLOW}STOPPING SERVER${NC}"
 
 # Stop Project Zomboid server
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo -e "${YELLOW}Stopping Project Zomboid server...${NC}"
-    pkill -f "ProjectZomboid64.*pzserver"
-    sleep 3
-
-    if ! pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+    if stop_pz_server; then
         echo -e "${GREEN}✓ Project Zomboid server stopped${NC}"
     else
         echo -e "${RED}✗ Failed to stop server (may need force kill)${NC}"

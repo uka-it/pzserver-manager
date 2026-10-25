@@ -12,12 +12,6 @@ UI_BOX_HELPERS_LOADED=1
 : "${CYAN:=$'\033[0;36m'}"
 : "${NC:=$'\033[0m'}"
 
-if command -v python3 >/dev/null 2>&1; then
-    UI_BOX_HAS_PYTHON3=1
-else
-    UI_BOX_HAS_PYTHON3=0
-fi
-
 _repeat_char() {
     local n="$1"
     local ch="$2"
@@ -33,39 +27,35 @@ _strip_ansi() {
     printf '%s' "$1" | sed -r $'s/\x1B\\[[0-9;]*[[:alpha:]]//g'
 }
 
+# Number of terminal columns a string takes. Wide characters (emoji like 🌐,
+# CJK) count 2, combining marks and variation selectors 0, everything else 1
+# (including symbols like ⚙ ● ✓ ✗ ⚠). Pure bash, so it gives the same result
+# with or without python3 (e.g. in the Docker image).
 _display_width() {
-    local plain="$(_strip_ansi "$1")"
+    local LC_ALL=C.UTF-8
+    local plain ch cp i width=0
+    plain="$(_strip_ansi "$1")"
 
-    if ((UI_BOX_HAS_PYTHON3)); then
-        python3 - "$plain" <<'PY'
-import sys
-import unicodedata
-
-text = sys.argv[1]
-width = 0
-for ch in text:
-    if unicodedata.combining(ch):
-        continue
-    if unicodedata.east_asian_width(ch) in ("F", "W"):
-        width += 2
-    else:
-        width += 1
-print(width, end="")
-PY
-    else
-        local fallback_plain="$plain"
-        fallback_plain="${fallback_plain//⚙/XX}"
-        fallback_plain="${fallback_plain//🌐/XX}"
-        fallback_plain="${fallback_plain//🔧/XX}"
-        fallback_plain="${fallback_plain//🌍/XX}"
-        fallback_plain="${fallback_plain//📋/XX}"
-        fallback_plain="${fallback_plain//⚠/XX}"
-        fallback_plain="${fallback_plain//✓/XX}"
-        fallback_plain="${fallback_plain//✗/XX}"
-        fallback_plain="${fallback_plain//●/XX}"
-        fallback_plain="${fallback_plain//ℹ/XX}"
-        printf '%s' "$fallback_plain" | wc -m | awk '{print $1}'
-    fi
+    for ((i = 0; i < ${#plain}; i++)); do
+        ch="${plain:i:1}"
+        printf -v cp '%d' "'$ch"
+        if ((cp < 0x300)); then
+            ((width += 1))
+        elif (( (cp >= 0x300 && cp <= 0x36F) || (cp >= 0x200B && cp <= 0x200D) ||
+                (cp >= 0xFE00 && cp <= 0xFE0F) )); then
+            :
+        elif (( (cp >= 0x1100 && cp <= 0x115F) || (cp >= 0x2E80 && cp <= 0xA4CF) ||
+                (cp >= 0xAC00 && cp <= 0xD7A3) || (cp >= 0xF900 && cp <= 0xFAFF) ||
+                (cp >= 0xFE30 && cp <= 0xFE4F) || (cp >= 0xFF00 && cp <= 0xFF60) ||
+                (cp >= 0xFFE0 && cp <= 0xFFE6) || (cp >= 0x1F300 && cp <= 0x1F64F) ||
+                (cp >= 0x1F680 && cp <= 0x1F6FF) || (cp >= 0x1F900 && cp <= 0x1FAFF) ||
+                (cp >= 0x20000 && cp <= 0x3FFFD) )); then
+            ((width += 2))
+        else
+            ((width += 1))
+        fi
+    done
+    printf '%s' "$width"
 }
 
 box_top() {

@@ -18,9 +18,8 @@ NC=$'\033[0m'
 source "$SCRIPT_DIR/lib/ui-box.sh"
 
 BACKUP_DIR="$INSTALL_DIR/backups"
-SERVER_NAME="pzserver"
-SAVE_DIR="$ZOMBOID_DIR/Saves/Multiplayer/$SERVER_NAME"
-DB_FILE="$ZOMBOID_DIR/db/$SERVER_NAME.db"
+SAVE_DIR="$PZ_SAVE_DIR"
+DB_FILE="$PZ_DB_FILE"
 
 show_header() {
     clear
@@ -58,7 +57,7 @@ echo -e "${RED}This will DELETE all world data and start fresh!${NC}"
 echo ""
 
 # Check if server is running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "⚠ WARNING: Server is currently running!"
     echo ""
     read -p "Stop the server and continue? (yes/no): " confirm
@@ -67,8 +66,10 @@ if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
         exit 0
     fi
     echo "Stopping server..."
-    pkill -f "ProjectZomboid64.*pzserver"
-    sleep 3
+    if ! stop_pz_server; then
+        echo "✗ Server did not stop - aborting to avoid damaging the save"
+        exit 1
+    fi
 fi
 
 # Check if world exists

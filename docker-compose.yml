@@ -1,0 +1,44 @@
+services:
+  pzserver:
+    build: .
+    image: pzserver-manager:latest
+    container_name: pzserver
+    platform: linux/amd64
+    restart: unless-stopped
+    # Give the server time to save the world on docker stop
+    stop_grace_period: 60s
+    stdin_open: true
+    tty: true
+    environment:
+      # Used on first start only; afterwards edit ~/manager/.env via the menu
+      SERVER_NAME: "My PZ Server"
+      SERVER_DESCRIPTION: "A Project Zomboid Dedicated Server - Welcome Survivors!"
+      ADMIN_PASSWORD: "changeme123"
+      MAX_PLAYERS: "32"
+      # Internal server name; set it to your existing server's name when migrating
+      # (~/Zomboid/Server/<name>.ini, Saves/Multiplayer/<name>/, db/<name>.db)
+      PZ_SERVER_NAME: "pzserver"
+      # Server memory, e.g. "6G". Empty = recommended (container RAM - 2G, max 8G).
+      # Change later with the menu option "Set server memory"
+      SERVER_MEMORY: ""
+      # Steam branch: "public" (default release), "unstable", ... - see ./list-branches.sh
+      PZ_BRANCH: "public"
+      PLAYIT_ENABLED: "false"
+      AUTOSTART: "true"
+      # LAN/public IP of the Docker host, shown in the menu (optional)
+      HOST_IP: ""
+    ports:
+      - "16261:16261/udp"
+      - "16262:16262/udp"
+      - "8766:8766/udp"
+      - "8767:8767/udp"
+      - "27015:27015/tcp"
+    volumes:
+      - pz-home:/home/pz          # manager state (.env, logs), playit + Steam config
+      - pz-server:/home/pz/pzserver   # game install (re-downloadable)
+      - pz-saves:/home/pz/Zomboid     # worlds, pzserver.ini, player DB - back this up!
+
+volumes:
+  pz-home:
+  pz-server:
+  pz-saves:

@@ -54,7 +54,7 @@ show_header
 box_header "${YELLOW}SWITCH GAME BRANCH${NC}"
 
 # Check if server is running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "⚠ Server is currently running!"
     echo ""
     read -p "Stop server and continue? (yes/no): " confirm
@@ -76,40 +76,7 @@ echo ""
 TEMP_FILE=$(mktemp)
 "$STEAMCMD" +login anonymous +app_info_update 1 +app_info_print 380870 +quit > "$TEMP_FILE" 2>&1
 
-# Extract branches section
-BRANCHES_DATA=$(sed -n '/"branches"/,/"privatebranches"/p' "$TEMP_FILE")
-
-# Parse branch names and descriptions
-declare -a BRANCHES
-declare -a DESCRIPTIONS
-
-# Extract each branch
-while read -r line; do
-    # Check if line contains a branch name (quoted string on its own line)
-    if echo "$line" | grep -q '^\s*"[^"]*"\s*$'; then
-        BRANCH=$(echo "$line" | sed 's/^\s*"\([^"]*\)"\s*$/\1/')
-
-        # Skip metadata fields
-        if [[ "$BRANCH" == "branches" || "$BRANCH" == "buildid" || "$BRANCH" == "timeupdated" || "$BRANCH" == "description" || "$BRANCH" == "pwdrequired" ]]; then
-            continue
-        fi
-
-        # Look for description in the next few lines
-        DESC="$BRANCH"
-        SEARCH_START=$(grep -n "\"$BRANCH\"" "$TEMP_FILE" | head -1 | cut -d: -f1)
-        if [ -n "$SEARCH_START" ]; then
-            SEARCH_END=$((SEARCH_START + 10))
-            DESC_LINE=$(sed -n "${SEARCH_START},${SEARCH_END}p" "$TEMP_FILE" | grep '"description"' | head -1)
-            if [ -n "$DESC_LINE" ]; then
-                DESC=$(echo "$DESC_LINE" | sed 's/.*"description"\s*"\([^"]*\)".*/\1/')
-            fi
-        fi
-
-        BRANCHES+=("$BRANCH")
-        DESCRIPTIONS+=("$DESC")
-    fi
-done <<< "$BRANCHES_DATA"
-
+parse_steam_branches "$TEMP_FILE"
 rm -f "$TEMP_FILE"
 
 if [ ${#BRANCHES[@]} -eq 0 ]; then
@@ -127,22 +94,7 @@ for i in "${!BRANCHES[@]}"; do
     DESC="${DESCRIPTIONS[$i]}"
     NUM=$((i + 1))
 
-    # Add helpful labels for known branches
-    if [ "$BRANCH" = "public" ]; then
-        echo "$NUM. STABLE (Build 41) - public branch"
-        echo "   Most stable, recommended for public servers"
-    elif [ "$BRANCH" = "42.13.1" ]; then
-        echo "$NUM. Build 42.13.1"
-        echo "   Specific stable Build 42 version, recommended for multiplayer"
-    elif [ "$BRANCH" = "unstable" ]; then
-        echo "$NUM. UNSTABLE - Latest Build 42 experimental"
-        echo "   Latest features, may have bugs, frequent updates"
-    else
-        echo "$NUM. $BRANCH"
-        if [ "$DESC" != "$BRANCH" ]; then
-            echo "   $DESC"
-        fi
-    fi
+    echo "$NUM. $(branch_label "$BRANCH" "$DESC")"
     echo ""
 done
 
@@ -168,7 +120,7 @@ SELECTED_BRANCH="${BRANCHES[$((choice - 1))]}"
 
 if [ "$SELECTED_BRANCH" = "public" ]; then
     BETA_OPTION=""
-    BRANCH_NAME="STABLE (Build 41)"
+    BRANCH_NAME="public"
 else
     BETA_OPTION="-beta $SELECTED_BRANCH"
     BRANCH_NAME="$SELECTED_BRANCH"
@@ -195,8 +147,8 @@ if [ "$do_backup" = "yes" ]; then
     echo ""
     echo "Creating backup..."
     tar -czf "$BACKUP_FILE" \
-        $ZOMBOID_DIR/Saves/Multiplayer/pzserver/ \
-        $ZOMBOID_DIR/db/pzserver.db \
+        "$PZ_SAVE_DIR"/ \
+        "$PZ_DB_FILE" \
         2>/dev/null
 
     if [ -f "$BACKUP_FILE" ]; then

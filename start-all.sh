@@ -44,34 +44,19 @@ else
 fi
 
 # Check if PZ server is already running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "⚠ Project Zomboid server is already running!"
     echo "If you want to restart it, run: ./stop-all.sh first"
     exit 1
 fi
 
-# Detect current branch
-MANIFEST="${SCRIPT_DIR}/steamapps/appmanifest_380870.acf"
-if [ -f "$MANIFEST" ]; then
-    CURRENT_BRANCH=$(grep "BetaKey" "$MANIFEST" | head -1 | sed 's/.*"BetaKey".*"\([^"]*\)".*/\1/')
-    if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "BetaKey" ]; then
-        BRANCH_DISPLAY="STABLE (Build 41)"
-    elif [ "$CURRENT_BRANCH" = "42.13.1" ]; then
-        BRANCH_DISPLAY="Build 42.13.1"
-    elif [ "$CURRENT_BRANCH" = "unstable" ]; then
-        BRANCH_DISPLAY="UNSTABLE (Build 42)"
-    else
-        BRANCH_DISPLAY="$CURRENT_BRANCH"
-    fi
-else
-    BRANCH_DISPLAY="Unknown"
-fi
+BRANCH_DISPLAY=$(get_branch_display)
 
 echo "=================================================="
 echo "Starting Project Zomboid Server..."
 echo "Server Name: ${SERVER_NAME:-My PZ Server}"
 echo "Branch: $BRANCH_DISPLAY"
-echo "Memory: 8GB"
+echo "Memory: $(get_server_memory)"
 echo "=================================================="
 echo ""
 if [ -n "$PLAYIT_TUNNEL" ]; then
@@ -91,8 +76,8 @@ SERVER_PID=$!
 # Wait a moment and check if it started
 sleep 3
 
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
-    echo "✓ Server started successfully (PID: $(pgrep -f 'ProjectZomboid64.*pzserver'))"
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
+    echo "✓ Server started successfully (PID: $(pgrep -f "$PZ_PROCESS_PATTERN"))"
     echo ""
     echo "Server logs: $SCRIPT_DIR/server.log"
     echo "Playit logs: $SCRIPT_DIR/playit.log"

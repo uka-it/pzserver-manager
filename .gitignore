@@ -27,6 +27,7 @@ db/
 *.ini
 *.cfg
 .admin_created
+.game_version
 
 # System
 .DS_Store

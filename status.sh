@@ -51,8 +51,8 @@ show_header
 box_header "${YELLOW}SERVER STATUS${NC}"
 
 # Check Project Zomboid server
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
-    PZ_PID=$(pgrep -f "ProjectZomboid64.*pzserver")
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
+    PZ_PID=$(pgrep -f "$PZ_PROCESS_PATTERN")
     echo "✓ Project Zomboid Server: RUNNING (PID: $PZ_PID)"
 
     # Show memory usage
@@ -77,10 +77,21 @@ fi
 
 echo ""
 
-# Check listening ports
-echo "Listening Ports:"
-ss -ulpn 2>/dev/null | grep -E "($DEFAULT_PORT|$UDP_PORT)" | while read line; do
-    echo "  $line" | awk '{print "  " $1 " " $5}'
+# Check listening ports: "port proto label"
+echo "Ports:"
+for entry in "$DEFAULT_PORT udp Game" "$UDP_PORT udp Game (direct)" \
+             "$STEAM_PORT1 udp Steam" "$STEAM_PORT2 udp Steam" "$RCON_PORT tcp RCON"; do
+    read -r port proto label <<< "$entry"
+    if [ "$proto" = "tcp" ]; then
+        listening=$(ss -Hltn "sport = :$port" 2>/dev/null)
+    else
+        listening=$(ss -Hlun "sport = :$port" 2>/dev/null)
+    fi
+    if [ -n "$listening" ]; then
+        printf "  ${GREEN}✓${NC} %-10s %-15s listening\n" "$port/$proto" "$label"
+    else
+        printf "  ${YELLOW}-${NC} %-10s %-15s not listening\n" "$port/$proto" "$label"
+    fi
 done
 
 echo ""
@@ -108,6 +119,9 @@ if [ -n "$PUBLIC_IPV6" ]; then
 fi
 
 # Always show local
-LOCAL_IP=$(hostname -I | awk '{print $1}')
+LOCAL_IP=$(get_local_ip)
 box_line "  Local:     ${LOCAL_IP:-127.0.0.1}:$DEFAULT_PORT"
+if [ "$PZ_DOCKER" = "1" ] && [ -z "$HOST_IP" ]; then
+    box_line "  ${YELLOW}Other PCs: use the Docker host's IP (set HOST_IP to show it here)${NC}"
+fi
 box_bottom

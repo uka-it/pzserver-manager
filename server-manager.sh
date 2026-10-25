@@ -54,32 +54,45 @@ EOF
 ###############################################################################
 # Menu
 ###############################################################################
+# Game console log: ~/Zomboid/server-console.txt, or the newest
+# Logs/*/console.txt on older builds
+find_console_log() {
+    if [ -f "$ZOMBOID_DIR/server-console.txt" ]; then
+        echo "$ZOMBOID_DIR/server-console.txt"
+    else
+        ls -t "$ZOMBOID_DIR"/Logs/*/console.txt 2>/dev/null | head -1
+    fi
+}
+
+# Follow log file(s) live until the user presses q (or Ctrl+C)
+follow_logs() {
+    local key tail_pid stop=0
+    echo -e "${YELLOW}Following $*${NC}"
+    echo -e "${YELLOW}Press 'q' to return to the menu${NC}"
+    echo ""
+    tail -n 50 -F "$@" 2>/dev/null &
+    tail_pid=$!
+    # read is restarted after a trapped Ctrl+C, so poll with a timeout
+    trap 'stop=1' INT
+    while [ "$stop" -eq 0 ]; do
+        if read -rsn1 -t 1 key && [[ "$key" == [qQ] ]]; then
+            break
+        fi
+    done
+    trap - INT
+    kill "$tail_pid" 2>/dev/null
+    wait "$tail_pid" 2>/dev/null
+}
+
 show_menu() {
     clear
     show_header
     echo ""
 
-    # Detect current branch
-    MANIFEST="$INSTALL_DIR/steamapps/appmanifest_380870.acf"
-    if [ -f "$MANIFEST" ]; then
-        CURRENT_BRANCH=$(grep "BetaKey" "$MANIFEST" | head -1 | sed 's/.*"BetaKey".*"\([^"]*\)".*/\1/')
-        BUILD_ID=$(grep "buildid" "$MANIFEST" | head -1 | sed 's/.*"buildid".*"\([^"]*\)".*/\1/')
-
-        if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "BetaKey" ]; then
-            BRANCH_DISPLAY="STABLE (Build 41)"
-        elif [ "$CURRENT_BRANCH" = "42.13.1" ]; then
-            BRANCH_DISPLAY="Build 42.13.1"
-        elif [ "$CURRENT_BRANCH" = "unstable" ]; then
-            BRANCH_DISPLAY="UNSTABLE (Build 42)"
-        else
-            BRANCH_DISPLAY="$CURRENT_BRANCH"
-        fi
-    else
-        BRANCH_DISPLAY="Unknown"
-    fi
+    BRANCH_DISPLAY=$(get_branch_display)
 
     # Check server status
-    if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+    if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
         SERVER_STATUS="${GREEN}● RUNNING${NC}"
     else
         SERVER_STATUS="${RED}● STOPPED${NC}"
@@ -93,22 +106,19 @@ show_menu() {
     fi
 
     # Get IP address
-    SERVER_IP=$(hostname -I | awk '{print $1}')
+    SERVER_IP=$(get_local_ip)
     [ -z "$SERVER_IP" ] && SERVER_IP="Not detected"
+    [ "$PZ_DOCKER" = "1" ] && [ -z "$HOST_IP" ] && SERVER_IP="$SERVER_IP (set HOST_IP to show the host IP)"
 
-    # Get memory allocation (from ProjectZomboid64.json or default)
-    if [ -f "$INSTALL_DIR/ProjectZomboid64.json" ]; then
-        SERVER_MEMORY=$(grep -o '"vmArgs".*-Xmx[0-9]*[gGmM]' "$INSTALL_DIR/ProjectZomboid64.json" 2>/dev/null | grep -o '[0-9]*[gGmM]' | tail -1)
-    fi
-    [ -z "$SERVER_MEMORY" ] && SERVER_MEMORY="8G (default)"
+    SERVER_MEMORY=$(get_server_memory)
 
     # Frame
     box_top
-    box_title_center "${YELLOW}SERVER MANAGEMENT CONSOLE${NC}"
+    box_title_center "${YELLOW}SERVER MANAGEMENT CONSOLE${NC}  v${PZ_MANAGER_VERSION}"
     box_mid
     box_empty
 
-    box_line "  ${BLUE}Server Status:${NC}    $SERVER_STATUS"
+    box_line "  ${BLUE}Server Status:${NC}   $SERVER_STATUS"
     box_line "  ${BLUE}Playit.gg:${NC}       $PLAYIT_STATUS"
     box_line "  ${BLUE}Game Branch:${NC}     ${CYAN}$BRANCH_DISPLAY${NC}"
     box_line "  ${BLUE}Server IP:${NC}       ${CYAN}$SERVER_IP${NC}"
@@ -143,16 +153,17 @@ show_menu() {
     box_line "${YELLOW}  ⚙  CONFIGURATION${NC} "
     box_line "    ${GREEN}[12]${NC} Edit server config files"
     box_line "    ${GREEN}[13]${NC} Reset admin password"
+    box_line "    ${GREEN}[14]${NC} Set server memory"
 
     box_empty
     box_line "${YELLOW}  🌍 WORLD MANAGEMENT${NC}"
-    box_line "    ${GREEN}[14]${NC} Reset world (fresh start)"
-    box_line "    ${GREEN}[15]${NC} Manage backups (view/restore/delete)"
+    box_line "    ${GREEN}[15]${NC} Reset world (fresh start)"
+    box_line "    ${GREEN}[16]${NC} Manage backups (view/restore/delete)"
 
     box_empty
     box_line "${YELLOW}  📋 OTHER${NC}"
-    box_line "    ${GREEN}[16]${NC} View server logs (live)"
-    box_line "    ${RED}[17]${NC} Uninstall / Cleanup"
+    box_line "    ${GREEN}[17]${NC} View server logs (live)"
+    box_line "    ${RED}[18]${NC} Uninstall / Cleanup"
     box_line "    ${GREEN}[x]${NC} Exit"
 
     box_empty
@@ -165,7 +176,7 @@ show_menu() {
 ###############################################################################
 while true; do
     show_menu
-    read -p "Choose option [1-17, x]: " choice
+    read -p "Choose option [1-18, x]: " choice
     echo ""
 
     case $choice in
@@ -275,23 +286,29 @@ while true; do
             ;;
         14)
             clear
-            "$SCRIPT_DIR/reset-world.sh"
+            "$SCRIPT_DIR/set-memory.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         15)
             clear
-            "$SCRIPT_DIR/manage-backups.sh"
+            "$SCRIPT_DIR/reset-world.sh"
             echo ""
             read -p "Press Enter to continue..."
             ;;
         16)
+            clear
+            "$SCRIPT_DIR/manage-backups.sh"
+            echo ""
+            read -p "Press Enter to continue..."
+            ;;
+        17)
             while true; do
                 clear
                 box_header "${YELLOW}SERVER LOGS${NC}"
                 echo ""
                 echo -e "  ${GREEN}[1]${NC} Server output (server.log)"
-                echo -e "  ${GREEN}[2]${NC} Game console (console.txt)"
+                echo -e "  ${GREEN}[2]${NC} Game console (server-console.txt)"
                 echo -e "  ${GREEN}[3]${NC} Both (combined view)"
                 echo -e "  ${GREEN}[0]${NC} Back to main menu"
                 echo ""
@@ -304,11 +321,8 @@ while true; do
                 case $log_choice in
                     1)
                         clear
-                        echo -e "${YELLOW}Loading server.log... (Press 'q' to exit)${NC}"
-                        echo ""
-                        sleep 1
                         if [ -f "$SCRIPT_DIR/server.log" ]; then
-                            less +F "$SCRIPT_DIR/server.log"
+                            follow_logs "$SCRIPT_DIR/server.log"
                         else
                             echo -e "${RED}No server.log found${NC}"
                             sleep 2
@@ -316,25 +330,22 @@ while true; do
                         ;;
                     2)
                         clear
-                        echo -e "${YELLOW}Loading console.txt... (Press 'q' to exit)${NC}"
-                        echo ""
-                        sleep 1
-                        CONSOLE_LOG=$(ls -t "$ZOMBOID_DIR"/Logs/*/console.txt 2>/dev/null | head -1)
+                        CONSOLE_LOG=$(find_console_log)
                         if [ -n "$CONSOLE_LOG" ]; then
-                            less +F "$CONSOLE_LOG"
+                            follow_logs "$CONSOLE_LOG"
                         else
-                            echo -e "${RED}No console.txt found${NC}"
+                            echo -e "${RED}No console log found${NC}"
                             sleep 2
                         fi
                         ;;
                     3)
                         clear
-                        echo -e "${YELLOW}Loading combined logs... (Press 'q' to exit)${NC}"
-                        echo ""
-                        sleep 1
-                        CONSOLE_LOG=$(ls -t "$ZOMBOID_DIR"/Logs/*/console.txt 2>/dev/null | head -1)
-                        if [ -f "$SCRIPT_DIR/server.log" ] || [ -n "$CONSOLE_LOG" ]; then
-                            (tail -f "$SCRIPT_DIR/server.log" 2>/dev/null & tail -f "$CONSOLE_LOG" 2>/dev/null) | less +F
+                        CONSOLE_LOG=$(find_console_log)
+                        LOG_FILES=()
+                        [ -f "$SCRIPT_DIR/server.log" ] && LOG_FILES+=("$SCRIPT_DIR/server.log")
+                        [ -n "$CONSOLE_LOG" ] && LOG_FILES+=("$CONSOLE_LOG")
+                        if [ ${#LOG_FILES[@]} -gt 0 ]; then
+                            follow_logs "${LOG_FILES[@]}"
                         else
                             echo -e "${RED}No logs found${NC}"
                             sleep 2
@@ -350,7 +361,7 @@ while true; do
                 esac
             done
             ;;
-        17)
+        18)
             clear
             "$SCRIPT_DIR/uninstall.sh"
             ;;
@@ -361,7 +372,7 @@ while true; do
             exit 0
             ;;
         *)
-            echo -e "${RED}Invalid option. Please choose 1-17 or x to exit.${NC}"
+            echo -e "${RED}Invalid option. Please choose 1-18 or x to exit.${NC}"
             sleep 2
             ;;
     esac

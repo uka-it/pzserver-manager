@@ -99,10 +99,9 @@ stop_services() {
     echo -e "${YELLOW}Stopping all services...${NC}"
     echo ""
 
-    if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+    if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
         echo "Stopping Project Zomboid server..."
-        pkill -f "ProjectZomboid64.*pzserver"
-        sleep 3
+        stop_pz_server
     fi
 
     if pgrep -x "playit" > /dev/null; then

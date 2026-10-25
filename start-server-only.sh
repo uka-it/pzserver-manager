@@ -53,34 +53,19 @@ show_header
 box_header "${YELLOW}STARTING SERVER${NC}"
 
 # Check if PZ server is already running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "⚠ Project Zomboid server is already running!"
     echo "If you want to restart it, run: ./stop-all.sh first"
     exit 1
 fi
 
-# Detect current branch
-MANIFEST="${INSTALL_DIR}/steamapps/appmanifest_380870.acf"
-if [ -f "$MANIFEST" ]; then
-    CURRENT_BRANCH=$(grep "BetaKey" "$MANIFEST" | head -1 | sed 's/.*"BetaKey".*"\([^"]*\)".*/\1/')
-    if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "BetaKey" ]; then
-        BRANCH_DISPLAY="STABLE (Build 41)"
-    elif [ "$CURRENT_BRANCH" = "42.13.1" ]; then
-        BRANCH_DISPLAY="Build 42.13.1"
-    elif [ "$CURRENT_BRANCH" = "unstable" ]; then
-        BRANCH_DISPLAY="UNSTABLE (Build 42)"
-    else
-        BRANCH_DISPLAY="$CURRENT_BRANCH"
-    fi
-else
-    BRANCH_DISPLAY="Unknown"
-fi
+BRANCH_DISPLAY=$(get_branch_display)
 
 box_top
 box_line "${YELLOW}Server Configuration:${NC}"
 box_line "  ${BLUE}Name:${NC}   ${SERVER_NAME:-My PZ Server}"
 box_line "  ${BLUE}Branch:${NC} $BRANCH_DISPLAY"
-box_line "  ${BLUE}Memory:${NC} 8GB"
+box_line "  ${BLUE}Memory:${NC} $(get_server_memory)"
 box_line "  ${BLUE}Mode:${NC}   Direct Connection (No Playit.gg)"
 box_bottom
 echo ""
@@ -91,7 +76,7 @@ fi
 if [ -n "$PUBLIC_IPV6" ]; then
     echo "  IPv6: [$PUBLIC_IPV6]:$DEFAULT_PORT"
 fi
-LOCAL_IP=$(hostname -I | awk '{print $1}')
+LOCAL_IP=$(get_local_ip)
 echo "  Local: ${LOCAL_IP:-127.0.0.1}:$DEFAULT_PORT"
 echo ""
 box_top
@@ -106,8 +91,8 @@ SERVER_PID=$!
 # Wait a moment and check if it started
 sleep 3
 
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
-    echo "✓ Server started successfully (PID: $(pgrep -f 'ProjectZomboid64.*pzserver'))"
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
+    echo "✓ Server started successfully (PID: $(pgrep -f "$PZ_PROCESS_PATTERN"))"
     echo ""
     echo "Server logs: $SCRIPT_DIR/server.log"
     echo ""

@@ -11,6 +11,7 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 - [TL;DR](#-tldr)
 - [Features](#-features)
 - [Installation](#-installation)
+- [Using an Existing Server](#-using-an-existing-server)
 - [Usage](#-usage)
 - [File Structure](#-file-structure)
 - [Configuration](#-configuration)
@@ -20,6 +21,7 @@ A comprehensive, beautiful CLI management suite for Project Zomboid dedicated se
 - [Uninstallation](#-uninstallation)
 - [Quick Reference](#-quick-reference)
 - [TODO / Roadmap](#-todo--roadmap)
+- [Versions & Releases](#-versions--releases)
 - [License](#-license)
 
 ## ⚡ TL;DR
@@ -144,6 +146,110 @@ sudo apt install -y lib32gcc-s1 curl
 ./setup-new-server.sh
 ```
 
+### 🐳 Docker
+
+Runs the server and the manager in a container (x86_64 hosts only). Set your values in `docker-compose.yml` (at least `ADMIN_PASSWORD`), then:
+
+```bash
+docker compose up -d --build     # first start downloads the game (~3-5 GB)
+docker compose logs -f           # follow the server log
+docker exec -it pzserver ./server-manager.sh   # open the management menu
+docker compose stop              # graceful stop (world is saved)
+```
+
+- The environment variables in `docker-compose.yml` are only used for the **first** install. After that, change settings from the menu (they live in `~/manager/.env` inside the container).
+- `PZ_BRANCH` picks the game branch (`public` or a beta name such as `unstable`).
+- Data is kept in named volumes: `pz-saves` (worlds, `pzserver.ini`, player DB, so **back this one up**), `pz-server` (game files) and `pz-home` (manager state, playit and Steam config).
+- Game ports are **UDP** (`16261/udp`, `16262/udp`, `8766/udp`, `8767/udp`). If you only use Playit.gg you can remove the `ports:` section.
+- Stopping/restarting the server from the menu keeps the container running; `docker compose stop` shuts the server down gracefully.
+- Set `HOST_IP` to show the right address in the menu. Inside a container `hostname -I` only sees the internal Docker IP.
+- Memory: set `SERVER_MEMORY` (e.g. `6G`) for the first install, or leave it empty to use the recommended value (container RAM minus 2G, max 8G). Change it later with menu option `[14]`. Make sure Docker has enough RAM available.
+
+## 🔄 Using an Existing Server
+
+The manager can take over a Project Zomboid server you already run, with or without Docker. Your world, players, admin account and server settings are kept.
+
+### 1. Collect a few facts from your current server
+
+```bash
+ls ~/Zomboid/Server/*.ini
+```
+
+- **Server name**: the file name without `.ini` (`myserver.ini` → `myserver`). The manager calls this `PZ_SERVER_NAME`; it also names `Saves/Multiplayer/<name>/` and `db/<name>.db`. The default is `pzserver`.
+- **Game version**: the new install must use the **same branch** as your world. A Build 41 world won't load on Build 42; for Build 41 use `legacy41`. Run `./list-branches.sh` (or `[9]` in the menu) to see the current branches.
+- **Ports**: if you changed them, note `DefaultPort` and `UDPPort` from the `.ini`.
+
+### 2. Stop the old server and back it up
+
+Stop it the way you normally do (screen, tmux, systemd, …) and disable anything that starts it automatically (a systemd service or cron job), or it will fight the manager over the ports and files. Then back up your data:
+
+```bash
+tar czf ~/zomboid-backup.tar.gz -C ~ Zomboid
+```
+
+### 3a. Without Docker
+
+Run the manager as the same Linux user that owns `~/Zomboid` (not root):
+
+```bash
+git clone <repo-url> pzserver-manager && cd pzserver-manager
+chmod +x *.sh
+cp .env.example .env
+nano .env               # set PZ_SERVER_NAME, ports, SERVER_MEMORY and INSTALL_DIR
+                        # (where your game files are), and delete the ADMIN_PASSWORD line
+touch .admin_created    # your admin account already exists
+./server-manager.sh     # [1] Start server
+```
+
+### 3b. With Docker
+
+**Configure** `docker-compose.yml` (in the `environment:` section):
+
+```yaml
+PZ_SERVER_NAME: "myserver"   # from step 1
+PZ_BRANCH: "public"          # must match your world, e.g. "legacy41" for Build 41
+SERVER_MEMORY: "8G"
+HOST_IP: "192.168.1.50"      # this machine's LAN IP (optional, only for display)
+```
+
+`SERVER_NAME`, `SERVER_DESCRIPTION`, `MAX_PLAYERS` and `ADMIN_PASSWORD` are not used here: your existing `.ini` and admin account are kept. If you use **custom ports**, also add `DEFAULT_PORT` and `STEAM_PORT1` and change the `ports:` mappings to match (for game port 16300: `16300:16300/udp` and `16301:16301/udp`).
+
+**Copy your data** into the Docker volume, before the first start:
+
+```bash
+docker compose create                   # creates the container and empty volumes
+docker volume ls | grep pz-saves        # the name starts with the repo folder, e.g. pzserver-manager_pz-saves
+docker run --rm -v pzserver-manager_pz-saves:/dest -v ~/Zomboid:/src alpine \
+    sh -c "cp -a /src/. /dest/ && chown -R 1000:1000 /dest"   # the container runs as UID 1000
+```
+
+If the old server is on another machine, copy its `Zomboid` folder over first (for example with `scp -r`) and use that path as the source. On Windows, run the command on one line in PowerShell with a Windows path, e.g. `-v C:\path\to\Zomboid:/src`.
+
+**Start** it and follow the log:
+
+```bash
+docker compose up -d
+docker compose logs -f
+```
+
+On the first start you should see the game files download (~7 GB), then `Existing server configuration found … Keeping existing configuration unchanged` and `Existing player database found - keeping its admin account`. Workshop mods from your `.ini` download next, then `*** SERVER STARTED ***`.
+
+### 4. Check that it worked
+
+Open the menu (`./server-manager.sh`, or `docker exec -it pzserver ./server-manager.sh` with Docker):
+
+- `[4]` status: server **RUNNING** and the game port **listening**
+- `[12]` edit config: your config files are found (✓)
+- Join the game with your usual admin login and check your world, characters and settings
+
+### Troubleshooting and rollback
+
+- **World doesn't load or the server keeps stopping**: check the log (`docker compose logs --tail 200`, or `[17]` in the menu). Usually `PZ_BRANCH` doesn't match the version of your world.
+- **Go back to the old server**: stop the manager (`docker compose down`, or `[2]` in the menu) and start your old server as before. With Docker your original files were only copied, never changed; without Docker restore your backup from step 2 if needed.
+- **Start the Docker migration over**: `docker compose down -v` deletes the volumes; then repeat step 3b.
+
+Running setup (`[11]`) on an existing server is also safe: it backs up your `<name>.ini` and only updates the name, description, max players and ports; every other setting is kept.
+
 ## 🎯 Usage
 
 ### Main Menu
@@ -175,14 +281,16 @@ Launch the management console:
 
 **⚙️ CONFIGURATION**
 - `[12]` Edit server config files (INI, sandbox, spawn points)
+- `[13]` Reset admin password
+- `[14]` Set server memory (how much RAM the server may use)
 
 **🌍 WORLD MANAGEMENT**
-- `[13]` Reset world (fresh start)
-- `[14]` Manage backups (create/restore/delete)
+- `[15]` Reset world (fresh start)
+- `[16]` Manage backups (create/restore/delete)
 
 **📋 OTHER**
-- `[15]` View server logs (live)
-- `[16]` Uninstall / Cleanup
+- `[17]` View server logs (live)
+- `[18]` Uninstall / Cleanup
 - `[x]` Exit
 
 That's it! Everything is accessible through the main menu.
@@ -308,7 +416,7 @@ Red "PROJECT ZOMBOID" logo + Green CRT "Dedicated Server" subtitle
 - 🟡 Yellow: Playit.gg STOPPED
 
 ### Branch Auto-Detection
-Shows current branch in status: `UNSTABLE (Build 42)`, `Build 42.13.1`, `STABLE (Build 41)`
+Shows the installed Steam branch and the actual game version reported by the server, e.g. `public (v42.21.0)`
 
 ### Dynamic Size Calculation
 Cache cleaner shows actual sizes, not hardcoded values
@@ -409,6 +517,20 @@ Planned features and improvements:
   - Independent start/stop/update for each server
 
 Contributions and suggestions welcome!
+
+## 🔖 Versions & Releases
+
+The manager version is shown in the main menu and stored in the `VERSION` file. Every release is listed on the [Releases page](https://github.com/uka-it/pzserver-manager/releases) with its changes; see [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+To use a specific version, download it from the Releases page or check out its tag:
+```bash
+git checkout v2.0.0
+```
+
+**Making a release** (for maintainers):
+1. Update `VERSION` and add a section for the new version to `CHANGELOG.md`
+2. Commit, then tag and push: `git tag v2.1.0 && git push origin main v2.1.0`
+3. The GitHub Actions workflow checks the scripts, verifies `VERSION` matches the tag and publishes the release using the `CHANGELOG.md` section as release notes
 
 ## 🤝 Contributing
 

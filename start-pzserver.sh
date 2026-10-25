@@ -1,7 +1,7 @@
 #!/bin/bash
 ###############################################################################
 # Project Zomboid Server Startup Script
-# Server: pzserver
+# Server name: PZ_SERVER_NAME (default pzserver)
 ###############################################################################
 
 # Load configuration
@@ -10,14 +10,12 @@ source "$SCRIPT_DIR/config.sh"
 
 cd "${INSTALL_DIR}"
 
-# Server name
-SERVER_NAME="pzserver"
 
 # Flag file to track if admin has been created
 ADMIN_FLAG="$SCRIPT_DIR/.admin_created"
 
 echo "=================================================="
-echo "Starting Project Zomboid Server: ${SERVER_NAME}"
+echo "Starting Project Zomboid Server: ${PZ_SERVER_NAME}"
 echo "=================================================="
 
 # Export environment variables
@@ -26,6 +24,11 @@ export LD_LIBRARY_PATH="${INSTALL_DIR}/linux64:${INSTALL_DIR}/natives:${INSTALL_
 
 # Set JSIG library
 JSIG="libjsig.so"
+
+# Apply SERVER_MEMORY from .env (Steam updates reset ProjectZomboid64.json)
+apply_server_memory
+echo "Server memory: $(get_json_memory)"
+echo ""
 
 # Check if this is first run (admin not created yet)
 if [ ! -f "$ADMIN_FLAG" ] && [ -n "$ADMIN_PASSWORD" ]; then
@@ -47,15 +50,13 @@ if [ ! -f "$ADMIN_FLAG" ] && [ -n "$ADMIN_PASSWORD" ]; then
     fi
 
     # Start the server using the ProjectZomboid64 launcher with admin password
-    # Memory is configured in ProjectZomboid64.json (default 8GB, edit if needed)
-    LD_PRELOAD="${LD_PRELOAD}:${JSIG}" ./ProjectZomboid64 -servername "${SERVER_NAME}" -adminpassword "$ADMIN_PASSWORD"
+    LD_PRELOAD="${LD_PRELOAD}:${JSIG}" ./ProjectZomboid64 -servername "${PZ_SERVER_NAME}" -adminpassword "$ADMIN_PASSWORD"
 else
     echo "Admin already configured"
     echo ""
 
     # Start the server using the ProjectZomboid64 launcher
-    # Memory is configured in ProjectZomboid64.json (default 8GB, edit if needed)
-    LD_PRELOAD="${LD_PRELOAD}:${JSIG}" ./ProjectZomboid64 -servername "${SERVER_NAME}"
+    LD_PRELOAD="${LD_PRELOAD}:${JSIG}" ./ProjectZomboid64 -servername "${PZ_SERVER_NAME}"
 fi
 
 SERVER_EXIT_CODE=$?

@@ -54,7 +54,7 @@ echo "The server will re-download fresh from Steam on next start."
 echo ""
 
 # Check if server is running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo "⚠ WARNING: Server is currently running!"
     echo ""
     read -p "Stop the server and continue? (yes/no): " confirm
@@ -63,9 +63,11 @@ if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
         exit 0
     fi
     echo "Stopping server..."
-    pkill -f "ProjectZomboid64.*pzserver"
+    if ! stop_pz_server; then
+        echo "✗ Server did not stop - aborting to avoid damaging the save"
+        exit 1
+    fi
     pkill playit
-    sleep 3
 fi
 
 # Calculate actual sizes

@@ -60,7 +60,7 @@ echo "  4. Password will be applied on next server start"
 echo ""
 
 # Check if server is running
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo -e "${YELLOW}⚠ Server is currently running${NC}"
     echo ""
     echo "The password will be changed on next server restart."
@@ -146,7 +146,7 @@ echo ""
 echo -e "${CYAN}New password:${NC} $NEW_PASSWORD"
 echo ""
 
-if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
     echo -e "${YELLOW}Next steps:${NC}"
     echo "  1. Stop the server: ./server-manager.sh → [2]"
     echo "  2. Start the server: ./server-manager.sh → [1]"

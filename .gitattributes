@@ -1,6 +1,7 @@
 # Force LF line endings for shell scripts
 *.sh text eol=lf
 config.sh text eol=lf
+VERSION text eol=lf
 
 # Default for other text files
 * text=auto

@@ -1,0 +1,13 @@
+.git
+.env
+.admin_created
+*.log
+backups/
+Zomboid/
+steamcmd/
+steamapps/
+docker-compose.yml
+Dockerfile
+*.md
+.game_version
+.github/

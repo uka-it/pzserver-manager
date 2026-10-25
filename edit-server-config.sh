@@ -64,7 +64,7 @@ edit_file() {
     fi
 
     # Check if server is running
-    if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+    if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
         echo ""
         echo -e "${YELLOW}⚠ WARNING: Server is currently running!${NC}"
         echo ""
@@ -97,7 +97,7 @@ edit_file() {
         echo ""
         echo -e "${GREEN}✓ Changes saved to $file_name${NC}"
         echo ""
-        if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+        if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
             echo -e "${YELLOW}⚠ Server is running. Restart the server for changes to take effect.${NC}"
         else
             echo -e "${BLUE}ℹ Restart the server for changes to take effect.${NC}"
@@ -139,18 +139,30 @@ while true; do
     SPAWNPOINTS_EXISTS=""
     SPAWNREGIONS_EXISTS=""
 
-    [ -f "$SERVER_CONFIG_DIR/pzserver.ini" ] && CONFIG_EXISTS="✓" || CONFIG_EXISTS="✗"
-    [ -f "$SERVER_CONFIG_DIR/pzserver_SandboxVars.lua" ] && SANDBOX_EXISTS="✓" || SANDBOX_EXISTS="✗"
-    [ -f "$SERVER_CONFIG_DIR/pzserver_spawnpoints.lua" ] && SPAWNPOINTS_EXISTS="✓" || SPAWNPOINTS_EXISTS="✗"
-    [ -f "$SERVER_CONFIG_DIR/pzserver_spawnregions.lua" ] && SPAWNREGIONS_EXISTS="✓" || SPAWNREGIONS_EXISTS="✗"
+    name="$PZ_SERVER_NAME"
+    [ -f "$SERVER_CONFIG_DIR/$name.ini" ] && CONFIG_EXISTS="✓" || CONFIG_EXISTS="✗"
+    [ -f "$SERVER_CONFIG_DIR/${name}_SandboxVars.lua" ] && SANDBOX_EXISTS="✓" || SANDBOX_EXISTS="✗"
+    [ -f "$SERVER_CONFIG_DIR/${name}_spawnpoints.lua" ] && SPAWNPOINTS_EXISTS="✓" || SPAWNPOINTS_EXISTS="✗"
+    [ -f "$SERVER_CONFIG_DIR/${name}_spawnregions.lua" ] && SPAWNREGIONS_EXISTS="✓" || SPAWNREGIONS_EXISTS="✗"
+
+    # Pad labels to the longest one so the ✓/✗ column lines up for any server name
+    label1="Server Configuration ($name.ini)"
+    label2="Sandbox Variables (${name}_SandboxVars.lua)"
+    label3="Spawn Points (${name}_spawnpoints.lua)"
+    label4="Spawn Regions (${name}_spawnregions.lua)"
+    label_width=${#label2}
+    printf -v label1 "%-${label_width}s" "$label1"
+    printf -v label2 "%-${label_width}s" "$label2"
+    printf -v label3 "%-${label_width}s" "$label3"
+    printf -v label4 "%-${label_width}s" "$label4"
 
     echo -e "${YELLOW}Select configuration file to edit:${NC}"
     echo ""
     box_top
-    box_line "  ${GREEN}[1]${NC} Server Configuration (pzserver.ini)           $CONFIG_EXISTS"
-    box_line "  ${GREEN}[2]${NC} Sandbox Variables (pzserver_SandboxVars.lua)  $SANDBOX_EXISTS"
-    box_line "  ${GREEN}[3]${NC} Spawn Points (pzserver_spawnpoints.lua)       $SPAWNPOINTS_EXISTS"
-    box_line "  ${GREEN}[4]${NC} Spawn Regions (pzserver_spawnregions.lua)     $SPAWNREGIONS_EXISTS"
+    box_line "  ${GREEN}[1]${NC} $label1 $CONFIG_EXISTS"
+    box_line "  ${GREEN}[2]${NC} $label2 $SANDBOX_EXISTS"
+    box_line "  ${GREEN}[3]${NC} $label3 $SPAWNPOINTS_EXISTS"
+    box_line "  ${GREEN}[4]${NC} $label4 $SPAWNREGIONS_EXISTS"
     box_mid
     box_line "  ${GREEN}[5]${NC} Exit"
     box_bottom
@@ -161,16 +173,16 @@ while true; do
 
     case $choice in
         1)
-            edit_file "$SERVER_CONFIG_DIR/pzserver.ini" "Server Configuration"
+            edit_file "$SERVER_CONFIG_DIR/$PZ_SERVER_NAME.ini" "Server Configuration"
             ;;
         2)
-            edit_file "$SERVER_CONFIG_DIR/pzserver_SandboxVars.lua" "Sandbox Variables"
+            edit_file "$SERVER_CONFIG_DIR/${PZ_SERVER_NAME}_SandboxVars.lua" "Sandbox Variables"
             ;;
         3)
-            edit_file "$SERVER_CONFIG_DIR/pzserver_spawnpoints.lua" "Spawn Points"
+            edit_file "$SERVER_CONFIG_DIR/${PZ_SERVER_NAME}_spawnpoints.lua" "Spawn Points"
             ;;
         4)
-            edit_file "$SERVER_CONFIG_DIR/pzserver_spawnregions.lua" "Spawn Regions"
+            edit_file "$SERVER_CONFIG_DIR/${PZ_SERVER_NAME}_spawnregions.lua" "Spawn Regions"
             ;;
         5)
             echo "Exiting..."

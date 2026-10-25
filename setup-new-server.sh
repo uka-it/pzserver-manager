@@ -18,8 +18,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 source "$SCRIPT_DIR/lib/ui-box.sh"
 
+# Non-interactive mode (used by the Docker entrypoint): no prompts, values come
+# from environment variables, branch comes from PZ_BRANCH (default: public)
+PZ_NONINTERACTIVE="${PZ_NONINTERACTIVE:-0}"
+
 show_header() {
-    clear
+    [ "$PZ_NONINTERACTIVE" = "1" ] || clear
     echo -e "${RED}"
     cat << 'EOF'
  ██▓███   ██▀███   ▒█████   ▄▄▄██▀▀▀▓█████  ▄████▄  ▄▄▄█████▓   ▒███████▒ ▒█████   ███▄ ▄███▓ ▄▄▄▄    ▒█████   ██▓▓█████▄
@@ -57,6 +61,10 @@ check_existing() {
         echo ""
         echo "Installation directory: $INSTALL_DIR"
         echo ""
+        if [ "$PZ_NONINTERACTIVE" = "1" ]; then
+            echo "Non-interactive mode: continuing"
+            return
+        fi
         read -p "This will overwrite the existing installation. Continue? (yes/no): " confirm
         if [ "$confirm" != "yes" ]; then
             echo -e "${RED}Setup cancelled.${NC}"
@@ -73,6 +81,12 @@ install_dependencies() {
     if [ "$EUID" -eq 0 ]; then
         echo -e "${RED}Please do not run this script as root!${NC}"
         exit 1
+    fi
+
+    # Docker image ships with dependencies preinstalled
+    if [ "$PZ_DOCKER" = "1" ]; then
+        echo -e "${YELLOW}Running in Docker - dependencies already installed${NC}"
+        return
     fi
 
     # Install required packages
@@ -107,6 +121,11 @@ configure_server() {
     ENV_FILE="$SCRIPT_DIR/.env"
     USE_EXISTING_CONFIG=false
 
+    if [ "$PZ_NONINTERACTIVE" = "1" ]; then
+        configure_from_env
+        return
+    fi
+
     if [ -f "$ENV_FILE" ]; then
         echo -e "${YELLOW}Existing configuration found!${NC}"
         echo ""
@@ -136,6 +155,7 @@ configure_server() {
             SERVER_DESC="${SERVER_DESCRIPTION:-A Project Zomboid Dedicated Server - Welcome Survivors!}"
             ADMIN_PASS="${ADMIN_PASSWORD:-changeme123}"
             MAX_PLAYERS="${MAX_PLAYERS:-32}"
+            SERVER_MEMORY="${SERVER_MEMORY:-$(get_recommended_memory)}"
             DEFAULT_PORT="${DEFAULT_PORT:-16261}"
             UDP_PORT="${UDP_PORT:-16262}"
             STEAM_PORT1="${STEAM_PORT1:-8766}"
@@ -144,6 +164,7 @@ configure_server() {
             echo "Loaded configuration:"
             echo "  Server Name: $SERVER_NAME"
             echo "  Max Players: $MAX_PLAYERS"
+            echo "  Server Memory: $SERVER_MEMORY"
             echo "  Game Port: $DEFAULT_PORT"
             echo "  Steam Ports: $STEAM_PORT1, $STEAM_PORT2"
             echo ""
@@ -178,6 +199,11 @@ configure_server() {
         fi
 
         echo ""
+        echo -e "${CYAN}Memory Configuration:${NC}"
+        prompt_server_memory
+        SERVER_MEMORY="$CHOSEN_MEMORY"
+
+        echo ""
         echo -e "${CYAN}Port Configuration:${NC}"
 
         read -p "Enter game port (press Enter for '16261'): " DEFAULT_PORT
@@ -208,45 +234,13 @@ configure_server() {
     TEMP_FILE=$(mktemp)
     "$STEAMCMD_DIR/steamcmd.sh" +login anonymous +app_info_update 1 +app_info_print 380870 +quit > "$TEMP_FILE" 2>&1
 
-    # Extract branches section
-    BRANCHES_DATA=$(sed -n '/"branches"/,/"privatebranches"/p' "$TEMP_FILE")
-
-    # Parse branch names
-    declare -a BRANCHES
-    declare -a DESCRIPTIONS
-
-    # Extract each branch
-    while read -r line; do
-        if echo "$line" | grep -q '^\s*"[^"]*"\s*$'; then
-            BRANCH=$(echo "$line" | sed 's/^\s*"\([^"]*\)"\s*$/\1/')
-
-            # Skip metadata fields
-            if [[ "$BRANCH" == "branches" || "$BRANCH" == "buildid" || "$BRANCH" == "timeupdated" || "$BRANCH" == "description" || "$BRANCH" == "pwdrequired" ]]; then
-                continue
-            fi
-
-            # Look for description
-            DESC="$BRANCH"
-            SEARCH_START=$(grep -n "\"$BRANCH\"" "$TEMP_FILE" | head -1 | cut -d: -f1)
-            if [ -n "$SEARCH_START" ]; then
-                SEARCH_END=$((SEARCH_START + 10))
-                DESC_LINE=$(sed -n "${SEARCH_START},${SEARCH_END}p" "$TEMP_FILE" | grep '"description"' | head -1)
-                if [ -n "$DESC_LINE" ]; then
-                    DESC=$(echo "$DESC_LINE" | sed 's/.*"description"\s*"\([^"]*\)".*/\1/')
-                fi
-            fi
-
-            BRANCHES+=("$BRANCH")
-            DESCRIPTIONS+=("$DESC")
-        fi
-    done <<< "$BRANCHES_DATA"
-
+    parse_steam_branches "$TEMP_FILE"
     rm -f "$TEMP_FILE"
 
     if [ ${#BRANCHES[@]} -eq 0 ]; then
         echo -e "${YELLOW}⚠ Could not query branches, using defaults${NC}"
-        BRANCHES=("public" "42.13.1" "unstable")
-        DESCRIPTIONS=("STABLE (Build 41)" "Build 42.13.1" "UNSTABLE")
+        BRANCHES=("public" "unstable")
+        DESCRIPTIONS=("" "Unstable")
     fi
 
     # Display branches
@@ -258,19 +252,7 @@ configure_server() {
         DESC="${DESCRIPTIONS[$i]}"
         NUM=$((i + 1))
 
-        # Add helpful labels for known branches
-        if [ "$BRANCH" = "public" ]; then
-            echo -e "  ${GREEN}[$NUM]${NC} STABLE (Build 41) - Recommended"
-        elif [ "$BRANCH" = "42.13.1" ]; then
-            echo -e "  ${GREEN}[$NUM]${NC} Build 42.13.1 - Stable Build 42"
-        elif [ "$BRANCH" = "unstable" ]; then
-            echo -e "  ${GREEN}[$NUM]${NC} UNSTABLE - Latest experimental"
-        else
-            echo -e "  ${GREEN}[$NUM]${NC} $BRANCH"
-            if [ "$DESC" != "$BRANCH" ]; then
-                echo "       $DESC"
-            fi
-        fi
+        echo -e "  ${GREEN}[$NUM]${NC} $(branch_label "$BRANCH" "$DESC")"
     done
 
     echo ""
@@ -287,12 +269,16 @@ configure_server() {
 
     if [ "$SELECTED_BRANCH" = "public" ]; then
         BETA_OPTION=""
-        BRANCH_NAME="STABLE (Build 41)"
+        BRANCH_NAME="public"
     else
         BETA_OPTION="-beta $SELECTED_BRANCH"
         BRANCH_NAME="$SELECTED_BRANCH"
     fi
 
+    save_configuration
+}
+
+save_configuration() {
     echo ""
     echo -e "${GREEN}Saving configuration to .env file...${NC}"
 
@@ -306,6 +292,12 @@ SERVER_NAME="$SERVER_NAME"
 SERVER_DESCRIPTION="$SERVER_DESC"
 ADMIN_PASSWORD="$ADMIN_PASS"
 MAX_PLAYERS=$MAX_PLAYERS
+
+# Server memory (JVM -Xmx), e.g. 6G or 6144M - applied on every start
+SERVER_MEMORY="$SERVER_MEMORY"
+
+# Internal server name (-servername): file names in ~/Zomboid use it
+PZ_SERVER_NAME="$PZ_SERVER_NAME"
 
 # Installation Directory
 INSTALL_DIR="$INSTALL_DIR"
@@ -324,14 +316,19 @@ PUBLIC_IPV6=""
 PLAYIT_TUNNEL=""
 
 # Playit.gg Configuration
-PLAYIT_ENABLED=true
+PLAYIT_ENABLED=$PLAYIT_ENABLED
 EOF
 
     echo -e "${GREEN}✓ Configuration saved to .env${NC}"
 
-    # Remove admin flag to ensure password is applied on first start
     ADMIN_FLAG="$SCRIPT_DIR/.admin_created"
-    if [ -f "$ADMIN_FLAG" ]; then
+    if [ -f "$PZ_DB_FILE" ]; then
+        # Existing world: the admin account already exists in its database
+        touch "$ADMIN_FLAG"
+        echo -e "${GREEN}✓ Existing player database found - keeping its admin account${NC}"
+        echo "  (use 'Reset admin password' in the menu to change it)"
+    elif [ -f "$ADMIN_FLAG" ]; then
+        # Remove admin flag to ensure password is applied on first start
         rm -f "$ADMIN_FLAG"
         echo -e "${GREEN}✓ Removed admin flag${NC}"
     fi
@@ -341,9 +338,40 @@ EOF
     echo "  Server Name: $SERVER_NAME"
     echo "  Admin Password: $ADMIN_PASS"
     echo "  Max Players: $MAX_PLAYERS"
+    echo "  Server Memory: $SERVER_MEMORY"
     echo "  Game Port: $DEFAULT_PORT"
     echo "  Steam Ports: $STEAM_PORT1, $STEAM_PORT2"
     echo "  Branch: $BRANCH_NAME"
+}
+
+# Non-interactive configuration from environment variables (Docker)
+configure_from_env() {
+    SERVER_DESC="$SERVER_DESCRIPTION"
+    ADMIN_PASS="$ADMIN_PASSWORD"
+    UDP_PORT=$((DEFAULT_PORT + 1))
+    STEAM_PORT2=$((STEAM_PORT1 + 1))
+
+    if [ -z "$SERVER_MEMORY" ]; then
+        SERVER_MEMORY=$(get_recommended_memory)
+    elif ! SERVER_MEMORY=$(normalize_memory "$SERVER_MEMORY"); then
+        SERVER_MEMORY=$(get_recommended_memory)
+        echo -e "${YELLOW}⚠ Invalid SERVER_MEMORY - using recommended $SERVER_MEMORY${NC}"
+    fi
+
+    SELECTED_BRANCH="${PZ_BRANCH:-public}"
+    if [ "$SELECTED_BRANCH" = "public" ]; then
+        BETA_OPTION=""
+        BRANCH_NAME="public"
+    else
+        BETA_OPTION="-beta $SELECTED_BRANCH"
+        BRANCH_NAME="$SELECTED_BRANCH"
+    fi
+
+    if [ "$ADMIN_PASS" = "changeme123" ]; then
+        echo -e "${RED}⚠ WARNING: Using default admin password 'changeme123' - set ADMIN_PASSWORD!${NC}"
+    fi
+
+    save_configuration
 }
 
 download_server() {
@@ -371,14 +399,31 @@ download_server() {
 
 create_server_config() {
     echo ""
+    mkdir -p "$SERVER_CONFIG_DIR"
+
+    # Existing server: never replace its config
+    if [ -f "$SERVER_CONFIG_FILE" ]; then
+        echo "Existing server configuration found: $SERVER_CONFIG_FILE"
+        if [ "$PZ_NONINTERACTIVE" = "1" ]; then
+            echo -e "${GREEN}✓ Keeping existing configuration unchanged${NC}"
+            return
+        fi
+
+        cp "$SERVER_CONFIG_FILE" "$SERVER_CONFIG_FILE.bak-$(date +%Y%m%d-%H%M%S)"
+        set_ini_value "$SERVER_CONFIG_FILE" PublicName "$SERVER_NAME"
+        set_ini_value "$SERVER_CONFIG_FILE" PublicDescription "$SERVER_DESC"
+        set_ini_value "$SERVER_CONFIG_FILE" MaxPlayers "$MAX_PLAYERS"
+        set_ini_value "$SERVER_CONFIG_FILE" DefaultPort "$DEFAULT_PORT"
+        set_ini_value "$SERVER_CONFIG_FILE" UDPPort "$UDP_PORT"
+        echo -e "${GREEN}✓ Updated name, description, max players and ports - all other settings kept${NC}"
+        echo "  Backup of the previous file: $SERVER_CONFIG_FILE.bak-*"
+        return
+    fi
+
     echo "Creating minimal server configuration..."
+    echo "  Creating: $SERVER_CONFIG_FILE"
 
-    CONFIG_DIR="$ZOMBOID_DIR/Server"
-    mkdir -p "$CONFIG_DIR"
-
-    echo "  Creating: $CONFIG_DIR/pzserver.ini"
-
-    cat > "$CONFIG_DIR/pzserver.ini" << EOF
+    cat > "$SERVER_CONFIG_FILE" << EOF
 # Minimal Server Configuration
 # The server will fill in remaining options with defaults
 
@@ -393,13 +438,13 @@ EOF
     echo ""
 
     # Verify the config was created
-    if [ -f "$CONFIG_DIR/pzserver.ini" ]; then
+    if [ -f "$SERVER_CONFIG_FILE" ]; then
         echo -e "${GREEN}✓ Minimal server configuration created${NC}"
-        echo "  Config Location: $CONFIG_DIR/pzserver.ini"
+        echo "  Config Location: $SERVER_CONFIG_FILE"
         echo "  Admin password will be set via command-line on first start"
     else
         echo -e "${RED}✗ Failed to create config file${NC}"
-        echo "  Expected at: $CONFIG_DIR/pzserver.ini"
+        echo "  Expected at: $SERVER_CONFIG_FILE"
     fi
 }
 
@@ -415,6 +460,12 @@ create_management_scripts() {
 }
 
 show_completion() {
+    if [ "$PZ_NONINTERACTIVE" = "1" ]; then
+        echo ""
+        echo -e "${GREEN}✓ Installation complete (branch: $BRANCH_NAME)${NC}"
+        return
+    fi
+
     clear
     show_header
 
@@ -424,6 +475,7 @@ show_completion() {
     echo "  Branch: $BRANCH_NAME"
     echo "  Location: $INSTALL_DIR"
     echo "  Max Players: $MAX_PLAYERS"
+    echo "  Server Memory: $SERVER_MEMORY"
     echo ""
     echo -e "${CYAN}Next Steps:${NC}"
     echo ""

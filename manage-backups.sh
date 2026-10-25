@@ -19,7 +19,6 @@ NC=$'\033[0m'
 source "$SCRIPT_DIR/lib/ui-box.sh"
 
 BACKUP_DIR="$INSTALL_DIR/backups"
-SERVER_NAME="pzserver"
 
 show_header() {
     clear
@@ -57,8 +56,8 @@ create_backup() {
     box_header "${YELLOW}CREATE NEW BACKUP${NC}"
 
     # Check if world exists
-    SAVE_DIR="$ZOMBOID_DIR/Saves/Multiplayer/$SERVER_NAME"
-    DB_FILE="$ZOMBOID_DIR/db/$SERVER_NAME.db"
+    SAVE_DIR="$PZ_SAVE_DIR"
+    DB_FILE="$PZ_DB_FILE"
 
     if [ ! -d "$SAVE_DIR" ] && [ ! -f "$DB_FILE" ]; then
         echo -e "${YELLOW}ℹ No world found. Nothing to backup.${NC}"
@@ -70,7 +69,7 @@ create_backup() {
     fi
 
     # Check if server is running
-    if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+    if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
         echo -e "${YELLOW}⚠ WARNING: Server is currently running!${NC}"
         echo ""
         echo "It's recommended to stop the server before creating a backup"
@@ -234,7 +233,7 @@ manage_existing_backups() {
             echo ""
 
             # Check if server is running
-            if pgrep -f "ProjectZomboid64.*pzserver" > /dev/null; then
+            if pgrep -f "$PZ_PROCESS_PATTERN" > /dev/null; then
                 echo "⚠ Server is currently running!"
                 echo ""
                 read -p "Stop server and continue? (yes/no): " stop_confirm
@@ -263,8 +262,8 @@ manage_existing_backups() {
             SAFETY_BACKUP="$BACKUP_DIR/pre-restore-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
 
             tar -czf "$SAFETY_BACKUP" \
-                $ZOMBOID_DIR/Saves/Multiplayer/pzserver/ \
-                $ZOMBOID_DIR/db/pzserver.db \
+                "$PZ_SAVE_DIR"/ \
+                "$PZ_DB_FILE" \
                 2>/dev/null
 
             if [ -f "$SAFETY_BACKUP" ]; then
@@ -274,8 +273,8 @@ manage_existing_backups() {
 
             echo ""
             echo "Deleting current world..."
-            rm -rf $ZOMBOID_DIR/Saves/Multiplayer/pzserver/
-            rm -f $ZOMBOID_DIR/db/pzserver.db
+            rm -rf "$PZ_SAVE_DIR"/
+            rm -f "$PZ_DB_FILE"
             echo "✓ Current world and player database deleted"
 
             echo ""

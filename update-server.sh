@@ -52,25 +52,16 @@ show_header
 box_header "${YELLOW}UPDATE SERVER${NC}"
 
 # Detect current branch from Steam manifest
-MANIFEST="$INSTALL_DIR/steamapps/appmanifest_380870.acf"
-
-if [ -f "$MANIFEST" ]; then
-    CURRENT_BRANCH=$(grep "BetaKey" "$MANIFEST" | head -1 | sed 's/.*"BetaKey".*"\([^"]*\)".*/\1/')
-
-    if [ -z "$CURRENT_BRANCH" ] || [ "$CURRENT_BRANCH" = "BetaKey" ]; then
-        CURRENT_BRANCH="public"
-        BRANCH_DISPLAY="STABLE (Build 41)"
-        BETA_OPTION=""
-    else
-        BRANCH_DISPLAY="$CURRENT_BRANCH"
-        BETA_OPTION="-beta $CURRENT_BRANCH"
-    fi
-else
+if [ ! -f "$INSTALL_DIR/steamapps/appmanifest_380870.acf" ]; then
     echo "⚠ Warning: Could not detect current branch"
-    echo "Defaulting to public (stable) branch"
-    CURRENT_BRANCH="public"
-    BRANCH_DISPLAY="STABLE (Build 41)"
+    echo "Defaulting to public branch"
+fi
+CURRENT_BRANCH=$(get_installed_branch)
+BRANCH_DISPLAY=$(get_branch_display)
+if [ "$CURRENT_BRANCH" = "public" ]; then
     BETA_OPTION=""
+else
+    BETA_OPTION="-beta $CURRENT_BRANCH"
 fi
 
 echo "Current branch: $BRANCH_DISPLAY"
@@ -101,7 +92,7 @@ if [ $? -eq 0 ]; then
     box_line "${GREEN}✓ Update complete!${NC}"
     box_bottom
     echo ""
-    echo "Branch: $BRANCH_DISPLAY"
+    echo "Branch: $(get_branch_display)"
     echo ""
     box_top
     box_line "${YELLOW}Restart the server to use the updated files:${NC}"

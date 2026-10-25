@@ -11,3 +11,4 @@ Dockerfile
 *.md
 .game_version
 .github/
+docs/

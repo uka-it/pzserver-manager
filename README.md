@@ -1,7 +1,7 @@
 # 🧟 Project Zomboid Dedicated Server Manager
 ![Project Zomboid](https://img.shields.io/badge/Project%20Zomboid-Dedicated%20Server-red)
 ![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-orange)
-![Platform](https://img.shields.io/badge/platform-Linux-blue)
+![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Docker-blue)
 ![Non-Commercial](https://img.shields.io/badge/use-non--commercial-green)
 
 A comprehensive, beautiful CLI management suite for Project Zomboid dedicated servers on Linux.
@@ -47,7 +47,7 @@ Everything else in the menu is optional maintenance.
 - **Real-time Status** - Live server/tunnel status display
 - **Interactive Prompts** - User-friendly navigation
 
-<img width="1109" height="1269" alt="image" src="https://github.com/user-attachments/assets/7d9e301e-979b-4d07-bfe5-0183661aa240" />
+<img width="700" alt="Server manager main menu" src="docs/images/main-menu.png" />
 
 
 ### 🚀 Automated Setup

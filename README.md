@@ -3,6 +3,7 @@
 ![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-orange)
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Docker-blue)
 ![Non-Commercial](https://img.shields.io/badge/use-non--commercial-green)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/ukait)
 
 A comprehensive, beautiful CLI management suite for Project Zomboid dedicated servers on Linux.
 
@@ -132,7 +133,7 @@ If you prefer manual setup:
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourusername/pzserver-manager.git
+git clone https://github.com/uka-it/pzserver-manager.git
 cd pzserver-manager
 
 # 2. Make scripts executable
@@ -564,8 +565,12 @@ See [LICENSE](LICENSE) file for full terms.
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/pzserver-manager/issues)
+- **Issues:** [GitHub Issues](https://github.com/uka-it/pzserver-manager/issues)
 - **Wiki:** [Project Zomboid Wiki](https://pzwiki.net/wiki/Dedicated_server)
+
+If this manager saves you some time, you can support its development with a coffee. Please mention **PZ Server Manager** in your message so I know which project it's for. Thank you!
+
+<a href="https://buymeacoffee.com/ukait"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="40"></a>
 
 ## ⚡ Quick Reference
 

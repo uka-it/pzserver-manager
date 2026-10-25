@@ -3,6 +3,15 @@
 All notable changes to this project are listed here.
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [Unreleased]
+
+### Changed
+- Release workflow uses `actions/checkout@v5` (v4 runs on a deprecated Node.js version).
+
+### Added
+- Buy Me a Coffee links in the README and a GitHub Sponsor button.
+- README screenshot of the v2.0.0 menu.
+
 ## [2.0.0] - 2026-10-25
 
 ### Added
